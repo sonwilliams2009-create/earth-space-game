@@ -46,40 +46,49 @@ table{margin:auto;background:black;padding:10px;}
 <!-- LOGIN -->
 <div id="login" class="screen active">
 <h1>🌍🌌 Earth & Space Science Game</h1>
+<h2>Student Login</h2>
+<input id="studentName" placeholder="Username">
+<button onclick="studentLogin()">Login</button>
+<p>Ask your teacher for your username.</p>
+<button onclick="showTeacherLogin()">Teacher Login</button>
+</div>
+
+<!-- TEACHER LOGIN -->
+<div id="teacherLogin" class="screen">
 <h2>Teacher Login</h2>
-<input type="password" id="pass" placeholder="Password">
-<br>
-<button onclick="login()">Login</button>
-<p>Password: <b>caves</b></p>
+<input id="teacherPass" type="password" placeholder="Password">
+<button onclick="teacherLogin()">Login</button>
+<button onclick="show('login')">Back</button>
 </div>
 
 <!-- DASHBOARD -->
 <div id="dashboard" class="screen">
-<h1>👩‍🏫 Teacher Controls</h1>
+<h1>👩‍🏫 Teacher Dashboard</h1>
 
-<h3>Unlock Topics</h3>
+<h3>Create Students</h3>
+<input id="newStudent" placeholder="Student username">
+<button onclick="addStudent()">Add Student</button>
+
+<h3>Unlock Topics for Students</h3>
+<select id="selectStudent"></select><br>
 <label><input type="checkbox" id="stage1"> Big Bang & Universe</label><br>
 <label><input type="checkbox" id="stage2"> Earth Layers & Caves</label><br>
 <label><input type="checkbox" id="stage3"> Volcanoes & Plate Tectonics</label><br>
 <label><input type="checkbox" id="stage4"> Oceans & Trenches</label><br>
 <label><input type="checkbox" id="stage5"> Solar System & Space Missions</label><br>
-
 <button onclick="saveUnlocks()">Save Unlocks</button>
-<button onclick="studentMode()">Go To Student Mode</button>
 
 <h2>🏆 Leaderboard</h2>
 <div id="board"></div>
 <button onclick="resetBoard()">Reset Leaderboard</button>
 </div>
 
-<!-- STUDENT -->
-<div id="student" class="screen">
-<h1>🧭 Choose Explorer Name</h1>
-<input id="name" placeholder="Nickname">
+<!-- STUDENT GAME -->
+<div id="studentGame" class="screen">
+<h1>🧭 Choose a Topic</h1>
 <div id="stageButtons"></div>
 </div>
 
-<!-- GAME -->
 <div id="game" class="screen">
 <div class="card">
 <h2 id="stageTitle"></h2>
@@ -90,159 +99,180 @@ table{margin:auto;background:black;padding:10px;}
 </div>
 
 <script>
-let password="caves"; // <-- teacher password changed
+let teacherPassword = "caves"; // hidden, not displayed
+let currentStudent="";
 let score=0;
-let player="";
 let currentStage=null;
+let currentQuestionIndex=0;
 
-const stages={
-stage1:{
-title:"💥 Big Bang & Universe",
-question:"The Big Bang theory explains the origin of what?",
-answers:[
-{text:"The entire universe",correct:true},
-{text:"Earth only",correct:false},
-{text:"The Sun",correct:false}
-]
-},
-stage2:{
-title:"🌎 Earth Layers & Caves",
-question:"Which layer of Earth generates its magnetic field?",
-answers:[
-{text:"Crust",correct:false},
-{text:"Outer Core",correct:true},
-{text:"Mantle",correct:false},
-{text:"Inner Core",correct:false}
-]
-},
-stage3:{
-title:"🌋 Volcanoes & Plate Tectonics",
-question:"Mauna Loa in Hawaii is what type of volcano?",
-answers:[
-{text:"Shield",correct:true},
-{text:"Composite",correct:false},
-{text:"Cinder cone",correct:false}
-]
-},
-stage4:{
-title:"🌊 Oceans & Trenches",
-question:"The Mariana Trench was formed by?",
-answers:[
-{text:"Subduction",correct:true},
-{text:"Erosion",correct:false},
-{text:"Glacier melt",correct:false}
-]
-},
-stage5:{
-title:"🪐 Solar System & Space Missions",
-question:"NASA's Perseverance rover explores which planet?",
-answers:[
-{text:"Mars",correct:true},
-{text:"Venus",correct:false},
-{text:"Europa",correct:false}
-]
-}
+// Topics with multiple questions
+const stages = {
+stage1:{title:"💥 Big Bang & Universe", questions:[
+{q:"The Big Bang theory explains the origin of?", a:[{text:"The universe",correct:true},{text:"Earth",correct:false},{text:"Sun",correct:false}]},
+{q:"The Cosmic Microwave Background is?", a:[{text:"Radiation from early universe",correct:true},{text:"A type of star",correct:false},{text:"Planetary dust",correct:false}]},
+{q:"Edwin Hubble discovered galaxies are?", a:[{text:"Expanding away",correct:true},{text:"Stationary",correct:false},{text:"Collapsing",correct:false}]}
+]},
+stage2:{title:"🌎 Earth Layers & Caves", questions:[
+{q:"Which layer generates Earth's magnetic field?", a:[{text:"Outer Core",correct:true},{text:"Crust",correct:false},{text:"Mantle",correct:false}]},
+{q:"Mammoth Cave is famous for?", a:[{text:"Longest cave system",correct:true},{text:"Deepest cave",correct:false},{text:"Oldest cave",correct:false}]},
+{q:"Which is Earth's densest layer?", a:[{text:"Inner Core",correct:true},{text:"Crust",correct:false},{text:"Mantle",correct:false}]}
+]},
+stage3:{title:"🌋 Volcanoes & Plate Tectonics", questions:[
+{q:"Mauna Loa is what type of volcano?", a:[{text:"Shield",correct:true},{text:"Composite",correct:false}]},
+{q:"Earthquakes occur mainly at?", a:[{text:"Plate boundaries",correct:true},{text:"Plate centers",correct:false}]},
+{q:"Ring of Fire is?", a:[{text:"Volcanic region around Pacific",correct:true},{text:"Volcanic region in Atlantic",correct:false}]}
+]},
+stage4:{title:"🌊 Oceans & Trenches", questions:[
+{q:"Mariana Trench formed by?", a:[{text:"Subduction",correct:true},{text:"Erosion",correct:false}]},
+{q:"Largest ocean?", a:[{text:"Pacific",correct:true},{text:"Atlantic",correct:false}]},
+{q:"Ocean currents are caused by?", a:[{text:"Wind & rotation",correct:true},{text:"Earthquakes",correct:false}]}
+]},
+stage5:{title:"🪐 Solar System & Space Missions", questions:[
+{q:"Perseverance rover explores?", a:[{text:"Mars",correct:true},{text:"Venus",correct:false}]},
+{q:"Moon's surface is?", a:[{text:"Regolith",correct:true},{text:"Water",correct:false}]},
+{q:"Sun is a?", a:[{text:"Star",correct:true},{text:"Planet",correct:false}]}
+]}
 };
 
+// Student list & unlocks stored in localStorage
+let students = JSON.parse(localStorage.getItem("students")) || {};
+let leaderboard = JSON.parse(localStorage.getItem("board")) || {};
+
+// ---------- UI Functions ----------
 function show(id){
 document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
 document.getElementById(id).classList.add("active");
 }
 
-function login(){
-if(document.getElementById("pass").value===password){
+// --- Teacher Login ---
+function showTeacherLogin(){show('teacherLogin');}
+function teacherLogin(){
+if(document.getElementById("teacherPass").value===teacherPassword){
 show("dashboard");
-loadBoard();
-loadUnlocks();
+loadStudents();
+loadLeaderboard();
 }else alert("Wrong password");
 }
 
+// --- Manage Students ---
+function addStudent(){
+let name=document.getElementById("newStudent").value.trim();
+if(!name){alert("Enter username"); return;}
+if(!students[name]) students[name]={};
+localStorage.setItem("students",JSON.stringify(students));
+document.getElementById("newStudent").value="";
+loadStudents();
+alert("Student added");
+}
+
+function loadStudents(){
+let select=document.getElementById("selectStudent");
+select.innerHTML="";
+for(let s in students){
+let opt=document.createElement("option");
+opt.value=s; opt.text=s;
+select.add(opt);
+}
+loadStudentUnlocks();
+}
+
+function loadStudentUnlocks(){
+let s = document.getElementById("selectStudent").value;
+let unlocks = students[s] || {};
+for(let i=1;i<=5;i++){
+document.getElementById("stage"+i).checked=unlocks["stage"+i]||false;
+}
+}
+
+document.getElementById("selectStudent").addEventListener("change",loadStudentUnlocks);
+
 function saveUnlocks(){
-let unlocks={
-stage1:stage1.checked,
-stage2:stage2.checked,
-stage3:stage3.checked,
-stage4:stage4.checked,
-stage5:stage5.checked
-};
-localStorage.setItem("unlocks",JSON.stringify(unlocks));
-alert("Topics Updated");
+let s = document.getElementById("selectStudent").value;
+students[s]={};
+for(let i=1;i<=5;i++){
+students[s]["stage"+i]=document.getElementById("stage"+i).checked;
+}
+localStorage.setItem("students",JSON.stringify(students));
+alert("Unlocks saved for "+s);
 }
 
-function loadUnlocks(){
-let unlocks=JSON.parse(localStorage.getItem("unlocks"))||{};
-for(let key in unlocks){
-if(document.getElementById(key)){
-document.getElementById(key).checked=unlocks[key];
-}
-}
-}
-
-function studentMode(){
-show("student");
-loadStages();
+// --- Student Login ---
+function studentLogin(){
+let name=document.getElementById("studentName").value.trim();
+if(!students[name]){alert("Username not found, ask teacher"); return;}
+currentStudent=name;
+loadStudentStages();
 }
 
-function loadStages(){
-let unlocks=JSON.parse(localStorage.getItem("unlocks"))||{};
+function loadStudentStages(){
 let div=document.getElementById("stageButtons");
 div.innerHTML="";
-for(let key in unlocks){
-if(unlocks[key]){
+let unlocks = students[currentStudent];
+for(let i=1;i<=5;i++){
+if(unlocks["stage"+i]){
 let btn=document.createElement("button");
-btn.innerText=stages[key].title;
-btn.onclick=()=>startStage(key);
+btn.innerText=stages["stage"+i].title;
+btn.onclick=()=>startStage("stage"+i);
 div.appendChild(btn);
 }
 }
+show("studentGame");
 }
 
+// --- Game Logic ---
 function startStage(key){
-player=document.getElementById("name").value;
-if(!player){alert("Enter nickname");return;}
-score=0;
+score=0; currentQuestionIndex=0;
 currentStage=stages[key];
 show("game");
+showQuestion();
+}
+
+function showQuestion(){
+let q=currentStage.questions[currentQuestionIndex];
 document.getElementById("stageTitle").innerText=currentStage.title;
-document.getElementById("question").innerText=currentStage.question;
+document.getElementById("question").innerText=q.q;
 let div=document.getElementById("answers");
 div.innerHTML="";
-currentStage.answers.forEach(a=>{
+q.a.forEach(a=>{
 let btn=document.createElement("button");
-btn.className="answer";
-btn.innerText=a.text;
-btn.onclick=()=>selectAnswer(a.correct);
+btn.className="answer"; btn.innerText=a.text;
+btn.onclick=()=>checkAnswer(a.correct);
 div.appendChild(btn);
 });
 }
 
-function selectAnswer(correct){
+function checkAnswer(correct){
 if(correct)score+=20;
+currentQuestionIndex++;
+if(currentQuestionIndex<currentStage.questions.length){
+showQuestion();
+}else{
 saveScore();
-alert("Stage Complete! Score: "+score);
-show("student");
+alert("Topic Complete! Score: "+score);
+loadStudentStages();
+}
 }
 
 function saveScore(){
-let board=JSON.parse(localStorage.getItem("board"))||[];
-board.push({name:player,score:score});
-board.sort((a,b)=>b.score-a.score);
-localStorage.setItem("board",JSON.stringify(board));
+if(!leaderboard[currentStudent]) leaderboard[currentStudent]=0;
+leaderboard[currentStudent]+=score;
+localStorage.setItem("board",JSON.stringify(leaderboard));
+loadLeaderboard();
 }
 
-function loadBoard(){
-let board=JSON.parse(localStorage.getItem("board"))||[];
+// --- Leaderboard ---
+function loadLeaderboard(){
 let html="<table><tr><th>Name</th><th>Score</th></tr>";
-board.forEach(p=>{
-html+="<tr><td>"+p.name+"</td><td>"+p.score+"</td></tr>";
-});
+for(let s in leaderboard){
+html+="<tr><td>"+s+"</td><td>"+leaderboard[s]+"</td></tr>";
+}
 html+="</table>";
 document.getElementById("board").innerHTML=html;
 }
 
 function resetBoard(){
-localStorage.removeItem("board");
-loadBoard();
+leaderboard={}; localStorage.setItem("board",JSON.stringify(leaderboard));
+loadLeaderboard();
 }
 </script>
 
