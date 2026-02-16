@@ -32,7 +32,6 @@ const firebaseConfig = {
   messagingSenderId: "YOUR_SENDER_ID",
   appId: "YOUR_APP_ID"
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -46,96 +45,55 @@ let currentQuestionIndex = 0;
 let score = 0;
 
 /* =====================================================
-   🎓 FULL KY EARTH & SPACE SCIENCE TOPICS (20 UNITS)
+   🎓 KY EARTH & SPACE SCIENCE TOPICS
 ===================================================== */
 const courseUnits = {
-
   unit1:  { title: "Unit 1: Big Bang & Origin of the Universe" },
   unit2:  { title: "Unit 2: Stars, Galaxies, and Light Years" },
   unit3:  { title: "Unit 3: Solar System & Planet Motion" },
   unit4:  { title: "Unit 4: Gravity and Orbital Mechanics" },
-
   unit5:  { title: "Unit 5: Earth’s Interior and Layers" },
   unit6:  { title: "Unit 6: Plate Tectonics & Continental Drift" },
   unit7:  { title: "Unit 7: Earthquakes and Fault Zones" },
   unit8:  { title: "Unit 8: Volcanoes, Mountains, and Subduction" },
-
   unit9:  { title: "Unit 9: Weather Systems and Air Pressure" },
   unit10: { title: "Unit 10: Climate vs Weather & Climate Change" },
   unit11: { title: "Unit 11: Oceans, Currents, and the Water Cycle" },
-
   unit12: { title: "Unit 12: Earth’s Resources and Sustainability" },
   unit13: { title: "Unit 13: Human Impact on Earth Systems" },
-
   unit14: { title: "Unit 14: Moon Phases, Eclipses, and Tides" },
   unit15: { title: "Unit 15: Space Exploration and Satellites" },
-
   unit16: { title: "Unit 16: Meteorology and Severe Storms" },
   unit17: { title: "Unit 17: Earth’s Magnetic Field and Auroras" },
-
   unit18: { title: "Unit 18: Rocks, Minerals, and the Rock Cycle" },
   unit19: { title: "Unit 19: Geologic Time Scale and Fossil Evidence" },
-
   unit20: { title: "Unit 20: Final Review & Exam Prep" }
 };
 
 /* =====================================================
-   📚 QUESTION BANK (Add Unlimited Questions)
+   📚 QUESTION BANK (Expandable)
 ===================================================== */
 const questionBank = {
-
   unit1: [
-    {
-      q: "The Big Bang theory explains…",
-      a: [
-        { text: "The origin of the universe", correct: true },
-        { text: "The origin of oceans", correct: false }
-      ]
-    },
-    {
-      q: "The universe is approximately…",
-      a: [
-        { text: "13.8 billion years old", correct: true },
-        { text: "100,000 years old", correct: false }
-      ]
-    }
+    { q: "The Big Bang theory explains…", a: [{ text: "The origin of the universe", correct: true }, { text: "The origin of oceans", correct: false }] },
+    { q: "The universe is approximately…", a: [{ text: "13.8 billion years old", correct: true }, { text: "100,000 years old", correct: false }] }
   ],
-
   unit5: [
-    {
-      q: "Earth’s magnetic field is produced by…",
-      a: [
-        { text: "Movement in the outer core", correct: true },
-        { text: "The crust", correct: false }
-      ]
-    },
-    {
-      q: "The densest Earth layer is the…",
-      a: [
-        { text: "Inner core", correct: true },
-        { text: "Mantle", correct: false }
-      ]
-    }
+    { q: "Earth’s magnetic field is produced by…", a: [{ text: "Movement in the outer core", correct: true }, { text: "The crust", correct: false }] },
+    { q: "The densest Earth layer is the…", a: [{ text: "Inner core", correct: true }, { text: "Mantle", correct: false }] }
   ],
-
   unit14: [
-    {
-      q: "Moon phases happen because…",
-      a: [
-        { text: "The Moon orbits Earth", correct: true },
-        { text: "Earth blocks sunlight permanently", correct: false }
-      ]
-    }
+    { q: "Moon phases happen because…", a: [{ text: "The Moon orbits Earth", correct: true }, { text: "Earth blocks sunlight permanently", correct: false }] }
   ]
 };
 
 /* =====================================================
-   🎲 SHUFFLE FUNCTION
+   🎲 SHUFFLE
 ===================================================== */
 function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    let j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
+  for (let i=array.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [array[i], array[j]]=[array[j], array[i]];
   }
 }
 
@@ -149,15 +107,14 @@ function show(id) {
 window.show = show;
 
 /* =====================================================
-   🎵 MENU MUSIC SYSTEM
+   🎵 MUSIC
 ===================================================== */
 let music = new Audio("menu-music.mp3");
 music.loop = true;
-music.volume = 0.4;
-
+music.volume = 0.3;
 window.toggleMusic = function () {
   if (music.paused) {
-    music.play();
+    music.play().catch(err=>console.log("Click to allow music"));
     document.getElementById("musicBtn").innerText = "🔊 Music ON";
   } else {
     music.pause();
@@ -169,188 +126,146 @@ window.toggleMusic = function () {
    TEACHER LOGIN
 ===================================================== */
 window.teacherLogin = function () {
-  if (document.getElementById("teacherPass").value === "caves") {
+  if (document.getElementById("teacherPass").value==="caves") {
     show("dashboard");
     loadLeaderboard();
     buildTeacherUnitList();
-  } else {
-    alert("Wrong password");
-  }
+  } else alert("Wrong password");
 };
 
 /* =====================================================
-   TEACHER ADD STUDENT (Teacher Chooses PIN)
+   TEACHER ADD STUDENT
 ===================================================== */
 window.addStudent = async function () {
-
-  let name = document.getElementById("newStudent").value.trim();
-  let pin = document.getElementById("newPin").value.trim();
-
-  if (!name) return alert("Enter username");
-  if (!pin || pin.length !== 4) return alert("PIN must be 4 digits");
+  const name = document.getElementById("newStudent").value.trim();
+  const pin = document.getElementById("newPin").value.trim();
+  if(!name || !pin) return alert("Enter username and 4-digit PIN");
+  if(pin.length!==4) return alert("PIN must be 4 digits");
 
   let allowed = {};
-  Object.keys(courseUnits).forEach(u => allowed[u] = false);
+  Object.keys(courseUnits).forEach(u => allowed[u]=false);
 
-  await setDoc(doc(db, "students", name), {
-    score: 0,
-    pin: pin,
-    allowedUnits: allowed,
-    completedUnits: {}
-  });
-
-  alert("Student Added:\n" + name + "\nPIN: " + pin);
+  await setDoc(doc(db,"students",name),{score:0,pin:pin,allowedUnits:allowed,completedUnits:{}});
+  alert(`Student added: ${name}\nPIN: ${pin}`);
 };
 
 /* =====================================================
-   TEACHER UNIT CHECKBOX LIST AUTO BUILD
+   TEACHER UNIT CHECKBOX LIST
 ===================================================== */
 function buildTeacherUnitList() {
   let div = document.getElementById("unitAssignList");
-  div.innerHTML = "";
-
-  let i = 1;
-  for (let u in courseUnits) {
-    div.innerHTML += `
-      <label>
-        <input type="checkbox" id="unitCheck${i}">
-        ${courseUnits[u].title}
-      </label><br>
-    `;
+  div.innerHTML="";
+  let i=1;
+  for(let u in courseUnits){
+    div.innerHTML+=`<label><input type="checkbox" id="unitCheck${i}"> ${courseUnits[u].title}</label><br>`;
     i++;
   }
 }
 
 /* =====================================================
-   TEACHER SAVE ASSIGNMENTS
+   SAVE TEACHER ASSIGNMENTS
 ===================================================== */
-window.saveAssignments = async function () {
+window.saveAssignments = async function(){
+  const student = document.getElementById("assignStudent").value.trim();
+  if(!student) return alert("Enter student username");
 
-  let student = document.getElementById("assignStudent").value.trim();
-  if (!student) return alert("Enter student username");
-
-  const ref = doc(db, "students", student);
+  const ref = doc(db,"students",student);
   const snap = await getDoc(ref);
+  if(!snap.exists()) return alert("Student not found!");
 
-  if (!snap.exists()) return alert("Student not found!");
-
-  let assigned = {};
-  let i = 1;
-
-  for (let u in courseUnits) {
-    assigned[u] = document.getElementById("unitCheck" + i).checked;
+  let assigned={}; let i=1;
+  for(let u in courseUnits){
+    assigned[u]=document.getElementById("unitCheck"+i).checked;
     i++;
   }
-
-  await updateDoc(ref, { allowedUnits: assigned });
-
-  alert("Assignments Saved!");
+  await updateDoc(ref,{allowedUnits:assigned});
+  alert("Assignments saved!");
 };
 
 /* =====================================================
-   STUDENT LOGIN (Username + PIN)
+   STUDENT LOGIN
 ===================================================== */
-window.studentLogin = async function () {
+window.studentLogin=async function(){
+  const name=document.getElementById("studentName").value.trim();
+  const pin=document.getElementById("studentPin").value.trim();
+  if(!name || !pin) return alert("Enter username and PIN");
 
-  let name = document.getElementById("studentName").value.trim();
-  let pin = document.getElementById("studentPin").value.trim();
-
-  const snap = await getDoc(doc(db, "students", name));
-
-  if (snap.exists() && snap.data().pin == pin) {
-    currentStudent = name;
-    show("studentMenu");
-    loadStudentUnits();
-  } else {
-    alert("Login failed!");
+  try{
+    const snap = await getDoc(doc(db,"students",name));
+    if(!snap.exists()) return alert("Student not found!");
+    const data = snap.data();
+    if(data.pin===pin){
+      currentStudent=name;
+      show("studentMenu");
+      loadStudentUnits();
+    } else alert("Incorrect PIN!");
+  } catch(err){
+    console.error(err);
+    alert("Error connecting to database");
   }
 };
 
 /* =====================================================
-   LOAD STUDENT ALLOWED UNITS
+   LOAD STUDENT ASSIGNED UNITS
 ===================================================== */
-async function loadStudentUnits() {
-
-  const snap = await getDoc(doc(db, "students", currentStudent));
-  let data = snap.data();
-
-  let div = document.getElementById("unitButtons");
-  div.innerHTML = "";
-
-  for (let u in courseUnits) {
-    if (data.allowedUnits[u]) {
-      let btn = document.createElement("button");
-      btn.innerText = courseUnits[u].title;
-      btn.onclick = () => startUnit(u);
+async function loadStudentUnits(){
+  const snap=await getDoc(doc(db,"students",currentStudent));
+  const data=snap.data();
+  const div=document.getElementById("unitButtons");
+  div.innerHTML="";
+  for(let u in courseUnits){
+    if(data.allowedUnits[u]){
+      const btn=document.createElement("button");
+      btn.innerText=courseUnits[u].title;
+      btn.onclick=()=>startUnit(u);
       div.appendChild(btn);
     }
   }
 }
 
 /* =====================================================
-   START UNIT GAME
+   START UNIT
 ===================================================== */
-window.startUnit = function (u) {
-
-  if (!questionBank[u]) {
-    alert("No questions added yet for this unit.");
-    return;
-  }
-
-  score = 0;
-  currentQuestionIndex = 0;
-  currentUnitKey = u;
-  currentUnitData = questionBank[u];
-
+window.startUnit=function(u){
+  if(!questionBank[u]) return alert("No questions added yet for this unit.");
+  currentUnitKey=u;
+  currentUnitData=questionBank[u];
+  currentQuestionIndex=0;
+  score=0;
   shuffle(currentUnitData);
-
   show("game");
   showQuestion();
 };
 
-function showQuestion() {
-
-  let q = currentUnitData[currentQuestionIndex];
-
-  document.getElementById("unitTitle").innerText =
-    courseUnits[currentUnitKey].title;
-
-  document.getElementById("question").innerText = q.q;
-
-  let div = document.getElementById("answers");
-  div.innerHTML = "";
-
+function showQuestion(){
+  const q=currentUnitData[currentQuestionIndex];
+  document.getElementById("unitTitle").innerText=courseUnits[currentUnitKey].title;
+  document.getElementById("question").innerText=q.q;
+  const div=document.getElementById("answers");
+  div.innerHTML="";
   shuffle(q.a);
-
-  q.a.forEach(ans => {
-    let btn = document.createElement("button");
-    btn.innerText = ans.text;
-    btn.onclick = () => checkAnswer(ans.correct);
+  q.a.forEach(ans=>{
+    const btn=document.createElement("button");
+    btn.innerText=ans.text;
+    btn.onclick=()=>checkAnswer(ans.correct);
     div.appendChild(btn);
   });
 }
 
 /* =====================================================
-   CHECK ANSWERS + SAVE SCORE
+   CHECK ANSWER
 ===================================================== */
-async function checkAnswer(correct) {
-
-  if (correct) score += 20;
+async function checkAnswer(correct){
+  if(correct) score+=20;
   currentQuestionIndex++;
-
-  if (currentQuestionIndex < currentUnitData.length) {
+  if(currentQuestionIndex<currentUnitData.length){
     showQuestion();
   } else {
-
-    const ref = doc(db, "students", currentStudent);
-    const snap = await getDoc(ref);
-
-    let total = snap.data().score + score;
-
-    await updateDoc(ref, { score: total });
-
-    alert("Unit Complete! Score earned: " + score);
-
+    const ref=doc(db,"students",currentStudent);
+    const snap=await getDoc(ref);
+    const total=snap.data().score+score;
+    await updateDoc(ref,{score:total});
+    alert(`Unit Complete! Score earned: ${score}`);
     show("studentMenu");
     loadStudentUnits();
   }
@@ -359,103 +274,74 @@ async function checkAnswer(correct) {
 /* =====================================================
    LEADERBOARD
 ===================================================== */
-async function loadLeaderboard() {
-
-  let div = document.getElementById("board");
-  div.innerHTML = "";
-
-  const qSnap = query(collection(db, "students"), orderBy("score", "desc"));
-  const snaps = await getDocs(qSnap);
-
-  snaps.forEach(docSnap => {
-    div.innerHTML += "🏆 " + docSnap.id + " : " +
-      docSnap.data().score + " points<br>";
+async function loadLeaderboard(){
+  const div=document.getElementById("board");
+  div.innerHTML="";
+  const qSnap=query(collection(db,"students"),orderBy("score","desc"));
+  const snaps=await getDocs(qSnap);
+  snaps.forEach(docSnap=>{
+    div.innerHTML+="🏆 "+docSnap.id+" : "+docSnap.data().score+" points<br>";
   });
 }
 
 </script>
 
 <style>
-body {
-  margin: 0;
-  font-family: Arial;
-  background: #000014;
-  color: white;
-  text-align: center;
-}
-.screen {
-  display: none;
-  padding: 30px;
-}
-#login {
-  display: block;
-}
-button, input {
-  padding: 10px;
-  margin: 10px;
-  border-radius: 8px;
-  border: none;
-}
-button {
-  background: orange;
-  cursor: pointer;
-}
-button:hover {
-  background: white;
-  color: black;
-}
+body{margin:0;font-family:Arial;background:#000014;color:white;text-align:center;}
+.screen{display:none;padding:30px;}
+#login{display:block;}
+button,input{padding:10px;margin:10px;border-radius:8px;border:none;}
+button{background:orange;cursor:pointer;}
+button:hover{background:white;color:black;}
 </style>
-</head>
 
+</head>
 <body>
 
 <h1>🏫 ECHS KY Earth & Space Science</h1>
-
 <button id="musicBtn" onclick="toggleMusic()">🔇 Music OFF</button>
 
-<!-- LOGIN SCREEN -->
+<!-- LOGIN -->
 <div id="login" class="screen">
-  <h2>Student Login</h2>
-  <input id="studentName" placeholder="Username">
-  <input id="studentPin" placeholder="4-digit PIN">
-  <button onclick="studentLogin()">Login</button>
+<h2>Student Login</h2>
+<input id="studentName" placeholder="Username">
+<input id="studentPin" placeholder="4-digit PIN">
+<button onclick="studentLogin()">Login</button>
 
-  <h2>Teacher Login</h2>
-  <input id="teacherPass" type="password" placeholder="Password">
-  <button onclick="teacherLogin()">Login</button>
+<h2>Teacher Login</h2>
+<input id="teacherPass" type="password" placeholder="Password">
+<button onclick="teacherLogin()">Login</button>
 </div>
 
 <!-- TEACHER DASHBOARD -->
 <div id="dashboard" class="screen">
-  <h2>Teacher Dashboard</h2>
+<h2>Teacher Dashboard</h2>
 
-  <h3>Add Student</h3>
-  <input id="newStudent" placeholder="Username">
-  <input id="newPin" placeholder="PIN (4 digits)">
-  <button onclick="addStudent()">Add Student</button>
+<h3>Add Student</h3>
+<input id="newStudent" placeholder="Username">
+<input id="newPin" placeholder="PIN (4 digits)">
+<button onclick="addStudent()">Add Student</button>
 
-  <h3>Leaderboard</h3>
-  <div id="board"></div>
+<h3>Leaderboard</h3>
+<div id="board"></div>
 
-  <h3>Assign Units</h3>
-  <input id="assignStudent" placeholder="Student Username"><br>
-
-  <div id="unitAssignList"></div>
-
-  <button onclick="saveAssignments()">Save Assignments</button>
+<h3>Assign Units</h3>
+<input id="assignStudent" placeholder="Student Username"><br>
+<div id="unitAssignList"></div>
+<button onclick="saveAssignments()">Save Assignments</button>
 </div>
 
 <!-- STUDENT MENU -->
 <div id="studentMenu" class="screen">
-  <h2>Your Assigned Units</h2>
-  <div id="unitButtons"></div>
+<h2>Your Assigned Units</h2>
+<div id="unitButtons"></div>
 </div>
 
-<!-- GAME SCREEN -->
+<!-- GAME -->
 <div id="game" class="screen">
-  <h2 id="unitTitle"></h2>
-  <p id="question"></p>
-  <div id="answers"></div>
+<h2 id="unitTitle"></h2>
+<p id="question"></p>
+<div id="answers"></div>
 </div>
 
 </body>
