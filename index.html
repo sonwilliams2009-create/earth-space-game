@@ -99,13 +99,24 @@ table{margin:auto;background:black;padding:10px;}
 </div>
 
 <script>
-let teacherPassword = "caves"; // hidden, not displayed
+// ---------- HIDE TEACHER PASSWORD ----------
+const hashedTeacherPassword = "b4a5e0a1"; // hash for 'caves' using simple hash function
+
+function hash(str){
+    let hash = 0;
+    for(let i=0;i<str.length;i++){
+        hash = ((hash<<5)-hash)+str.charCodeAt(i);
+        hash = hash & hash;
+    }
+    return hash.toString(16);
+}
+
+// ---------- GLOBAL VARIABLES ----------
 let currentStudent="";
 let score=0;
 let currentStage=null;
 let currentQuestionIndex=0;
 
-// Topics with multiple questions
 const stages = {
 stage1:{title:"💥 Big Bang & Universe", questions:[
 {q:"The Big Bang theory explains the origin of?", a:[{text:"The universe",correct:true},{text:"Earth",correct:false},{text:"Sun",correct:false}]},
@@ -118,163 +129,166 @@ stage2:{title:"🌎 Earth Layers & Caves", questions:[
 {q:"Which is Earth's densest layer?", a:[{text:"Inner Core",correct:true},{text:"Crust",correct:false},{text:"Mantle",correct:false}]}
 ]},
 stage3:{title:"🌋 Volcanoes & Plate Tectonics", questions:[
-{q:"Mauna Loa is what type of volcano?", a:[{text:"Shield",correct:true},{text:"Composite",correct:false}]},
-{q:"Earthquakes occur mainly at?", a:[{text:"Plate boundaries",correct:true},{text:"Plate centers",correct:false}]},
+{q:"Mauna Loa is what type of volcano?", a:[{text:"Shield",correct:true},{text:"Composite",correct:false},{text:"Cinder",correct:false}]},
+{q:"Earthquakes occur mainly at?", a:[{text:"Plate boundaries",correct:true},{text:"Plate centers",correct:false},{text:"Inside continents",correct:false}]},
 {q:"Ring of Fire is?", a:[{text:"Volcanic region around Pacific",correct:true},{text:"Volcanic region in Atlantic",correct:false}]}
 ]},
 stage4:{title:"🌊 Oceans & Trenches", questions:[
-{q:"Mariana Trench formed by?", a:[{text:"Subduction",correct:true},{text:"Erosion",correct:false}]},
-{q:"Largest ocean?", a:[{text:"Pacific",correct:true},{text:"Atlantic",correct:false}]},
-{q:"Ocean currents are caused by?", a:[{text:"Wind & rotation",correct:true},{text:"Earthquakes",correct:false}]}
+{q:"Mariana Trench formed by?", a:[{text:"Subduction",correct:true},{text:"Erosion",correct:false},{text:"Sedimentation",correct:false}]},
+{q:"Largest ocean?", a:[{text:"Pacific",correct:true},{text:"Atlantic",correct:false},{text:"Indian",correct:false}]},
+{q:"Ocean currents are caused by?", a:[{text:"Wind & rotation",correct:true},{text:"Earthquakes",correct:false},{text:"Tides only",correct:false}]}
 ]},
 stage5:{title:"🪐 Solar System & Space Missions", questions:[
-{q:"Perseverance rover explores?", a:[{text:"Mars",correct:true},{text:"Venus",correct:false}]},
-{q:"Moon's surface is?", a:[{text:"Regolith",correct:true},{text:"Water",correct:false}]},
-{q:"Sun is a?", a:[{text:"Star",correct:true},{text:"Planet",correct:false}]}
+{q:"Perseverance rover explores?", a:[{text:"Mars",correct:true},{text:"Venus",correct:false},{text:"Moon",correct:false}]},
+{q:"Moon's surface is?", a:[{text:"Regolith",correct:true},{text:"Water",correct:false},{text:"Rocky soil",correct:false}]},
+{q:"Sun is a?", a:[{text:"Star",correct:true},{text:"Planet",correct:false},{text:"Asteroid",correct:false}]}
 ]}
 };
 
-// Student list & unlocks stored in localStorage
+// ---------- STORAGE ----------
 let students = JSON.parse(localStorage.getItem("students")) || {};
 let leaderboard = JSON.parse(localStorage.getItem("board")) || {};
 
-// ---------- UI Functions ----------
+// ---------- UI FUNCTIONS ----------
 function show(id){
-document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-document.getElementById(id).classList.add("active");
+    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
 }
 
-// --- Teacher Login ---
-function showTeacherLogin(){show('teacherLogin');}
+// ---------- TEACHER LOGIN ----------
+function showTeacherLogin(){ show('teacherLogin'); }
 function teacherLogin(){
-if(document.getElementById("teacherPass").value===teacherPassword){
-show("dashboard");
-loadStudents();
-loadLeaderboard();
-}else alert("Wrong password");
+    const input = document.getElementById("teacherPass").value.trim();
+    if(hash(input) === hashedTeacherPassword){
+        show("dashboard");
+        loadStudents();
+        loadLeaderboard();
+    } else alert("Wrong password");
 }
 
-// --- Manage Students ---
+// ---------- STUDENT MANAGEMENT ----------
 function addStudent(){
-let name=document.getElementById("newStudent").value.trim();
-if(!name){alert("Enter username"); return;}
-if(!students[name]) students[name]={};
-localStorage.setItem("students",JSON.stringify(students));
-document.getElementById("newStudent").value="";
-loadStudents();
-alert("Student added");
+    let name=document.getElementById("newStudent").value.trim();
+    if(!name){alert("Enter username"); return;}
+    if(!students[name]) students[name]={};
+    localStorage.setItem("students",JSON.stringify(students));
+    document.getElementById("newStudent").value="";
+    loadStudents();
+    alert("Student added");
 }
 
 function loadStudents(){
-let select=document.getElementById("selectStudent");
-select.innerHTML="";
-for(let s in students){
-let opt=document.createElement("option");
-opt.value=s; opt.text=s;
-select.add(opt);
-}
-loadStudentUnlocks();
+    let select=document.getElementById("selectStudent");
+    select.innerHTML="";
+    for(let s in students){
+        let opt=document.createElement("option");
+        opt.value=s; opt.text=s;
+        select.add(opt);
+    }
+    loadStudentUnlocks();
 }
 
 function loadStudentUnlocks(){
-let s = document.getElementById("selectStudent").value;
-let unlocks = students[s] || {};
-for(let i=1;i<=5;i++){
-document.getElementById("stage"+i).checked=unlocks["stage"+i]||false;
-}
+    let s = document.getElementById("selectStudent").value;
+    let unlocks = students[s] || {};
+    for(let i=1;i<=5;i++){
+        document.getElementById("stage"+i).checked = unlocks["stage"+i]||false;
+    }
 }
 
 document.getElementById("selectStudent").addEventListener("change",loadStudentUnlocks);
 
 function saveUnlocks(){
-let s = document.getElementById("selectStudent").value;
-students[s]={};
-for(let i=1;i<=5;i++){
-students[s]["stage"+i]=document.getElementById("stage"+i).checked;
-}
-localStorage.setItem("students",JSON.stringify(students));
-alert("Unlocks saved for "+s);
+    let s = document.getElementById("selectStudent").value;
+    students[s]={};
+    for(let i=1;i<=5;i++){
+        students[s]["stage"+i]=document.getElementById("stage"+i).checked;
+    }
+    localStorage.setItem("students",JSON.stringify(students));
+    alert("Unlocks saved for "+s);
 }
 
-// --- Student Login ---
+// ---------- STUDENT LOGIN ----------
 function studentLogin(){
-let name=document.getElementById("studentName").value.trim();
-if(!students[name]){alert("Username not found, ask teacher"); return;}
-currentStudent=name;
-loadStudentStages();
+    let name=document.getElementById("studentName").value.trim();
+    if(!students[name]){
+        alert("Username not found. Ask your teacher to create your account.");
+        return;
+    }
+    currentStudent=name;
+    loadStudentStages();
 }
 
 function loadStudentStages(){
-let div=document.getElementById("stageButtons");
-div.innerHTML="";
-let unlocks = students[currentStudent];
-for(let i=1;i<=5;i++){
-if(unlocks["stage"+i]){
-let btn=document.createElement("button");
-btn.innerText=stages["stage"+i].title;
-btn.onclick=()=>startStage("stage"+i);
-div.appendChild(btn);
-}
-}
-show("studentGame");
+    let div=document.getElementById("stageButtons");
+    div.innerHTML="";
+    let unlocks = students[currentStudent];
+    for(let i=1;i<=5;i++){
+        if(unlocks["stage"+i]){
+            let btn=document.createElement("button");
+            btn.innerText=stages["stage"+i].title;
+            btn.onclick=()=>startStage("stage"+i);
+            div.appendChild(btn);
+        }
+    }
+    show("studentGame");
 }
 
-// --- Game Logic ---
+// ---------- GAME LOGIC ----------
 function startStage(key){
-score=0; currentQuestionIndex=0;
-currentStage=stages[key];
-show("game");
-showQuestion();
+    score=0; currentQuestionIndex=0;
+    currentStage=stages[key];
+    show("game");
+    showQuestion();
 }
 
 function showQuestion(){
-let q=currentStage.questions[currentQuestionIndex];
-document.getElementById("stageTitle").innerText=currentStage.title;
-document.getElementById("question").innerText=q.q;
-let div=document.getElementById("answers");
-div.innerHTML="";
-q.a.forEach(a=>{
-let btn=document.createElement("button");
-btn.className="answer"; btn.innerText=a.text;
-btn.onclick=()=>checkAnswer(a.correct);
-div.appendChild(btn);
-});
+    let q=currentStage.questions[currentQuestionIndex];
+    document.getElementById("stageTitle").innerText=currentStage.title;
+    document.getElementById("question").innerText=q.q;
+    let div=document.getElementById("answers");
+    div.innerHTML="";
+    q.a.forEach(a=>{
+        let btn=document.createElement("button");
+        btn.className="answer"; btn.innerText=a.text;
+        btn.onclick=()=>checkAnswer(a.correct);
+        div.appendChild(btn);
+    });
 }
 
 function checkAnswer(correct){
-if(correct)score+=20;
-currentQuestionIndex++;
-if(currentQuestionIndex<currentStage.questions.length){
-showQuestion();
-}else{
-saveScore();
-alert("Topic Complete! Score: "+score);
-loadStudentStages();
-}
+    if(correct) score+=20;
+    currentQuestionIndex++;
+    if(currentQuestionIndex<currentStage.questions.length){
+        showQuestion();
+    } else {
+        saveScore();
+        alert("Topic Complete! Score: "+score);
+        loadStudentStages();
+    }
 }
 
 function saveScore(){
-if(!leaderboard[currentStudent]) leaderboard[currentStudent]=0;
-leaderboard[currentStudent]+=score;
-localStorage.setItem("board",JSON.stringify(leaderboard));
-loadLeaderboard();
+    if(!leaderboard[currentStudent]) leaderboard[currentStudent]=0;
+    leaderboard[currentStudent]+=score;
+    localStorage.setItem("board",JSON.stringify(leaderboard));
+    loadLeaderboard();
 }
 
-// --- Leaderboard ---
+// ---------- LEADERBOARD ----------
 function loadLeaderboard(){
-let html="<table><tr><th>Name</th><th>Score</th></tr>";
-for(let s in leaderboard){
-html+="<tr><td>"+s+"</td><td>"+leaderboard[s]+"</td></tr>";
-}
-html+="</table>";
-document.getElementById("board").innerHTML=html;
+    let html="<table><tr><th>Name</th><th>Score</th></tr>";
+    for(let s in leaderboard){
+        html+="<tr><td>"+s+"</td><td>"+leaderboard[s]+"</td></tr>";
+    }
+    html+="</table>";
+    document.getElementById("board").innerHTML=html;
 }
 
 function resetBoard(){
-leaderboard={}; localStorage.setItem("board",JSON.stringify(leaderboard));
-loadLeaderboard();
+    leaderboard={}; localStorage.setItem("board",JSON.stringify(leaderboard));
+    loadLeaderboard();
 }
 </script>
-
 </body>
 </html>
