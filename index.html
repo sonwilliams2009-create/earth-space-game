@@ -6,8 +6,17 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs } 
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+  collection,
+  getDocs,
+  query,
+  orderBy
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* 🔥 REPLACE WITH YOUR FIREBASE CONFIG */
 const firebaseConfig = {
@@ -22,164 +31,261 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let currentStudent="";
-let score=0;
-let currentStage=null;
-let currentQuestionIndex=0;
+let currentStudent = "";
+let score = 0;
+let currentStage = null;
+let currentQuestionIndex = 0;
 
 /* ------------------ QUESTION BANK ------------------ */
-const stages={
-stage1:{title:"💥 Big Bang & Universe",questions:[
-{q:"The Big Bang created?",a:[{text:"The Universe",correct:true},{text:"Earth",correct:false}]},
-{q:"Universe age?",a:[{text:"13.8 billion years",correct:true},{text:"1 million years",correct:false}]},
-{q:"Galaxies are moving?",a:[{text:"Away from each other",correct:true},{text:"Toward each other",correct:false}]}
-]},
-stage2:{title:"🌎 Earth Layers",questions:[
-{q:"Magnetic field comes from?",a:[{text:"Outer Core",correct:true},{text:"Crust",correct:false}]},
-{q:"Earth’s densest layer?",a:[{text:"Inner Core",correct:true},{text:"Mantle",correct:false}]}
-]},
-stage3:{title:"🌋 Plate Tectonics",questions:[
-{q:"Divergent plates?",a:[{text:"Move apart",correct:true},{text:"Collide",correct:false}]},
-{q:"Ring of Fire surrounds?",a:[{text:"Pacific Ocean",correct:true},{text:"Atlantic Ocean",correct:false}]}
-]}
+const stages = {
+  stage1: {
+    title: "💥 Big Bang & Universe",
+    questions: [
+      { q: "The Big Bang created?", a: [
+        { text: "The Universe", correct: true },
+        { text: "Earth", correct: false }
+      ]},
+      { q: "Universe age?", a: [
+        { text: "13.8 billion years", correct: true },
+        { text: "1 million years", correct: false }
+      ]},
+      { q: "Galaxies are moving?", a: [
+        { text: "Away from each other", correct: true },
+        { text: "Toward each other", correct: false }
+      ]}
+    ]
+  },
+
+  stage2: {
+    title: "🌎 Earth Layers",
+    questions: [
+      { q: "Magnetic field comes from?", a: [
+        { text: "Outer Core", correct: true },
+        { text: "Crust", correct: false }
+      ]},
+      { q: "Earth’s densest layer?", a: [
+        { text: "Inner Core", correct: true },
+        { text: "Mantle", correct: false }
+      ]}
+    ]
+  },
+
+  stage3: {
+    title: "🌋 Plate Tectonics",
+    questions: [
+      { q: "Divergent plates?", a: [
+        { text: "Move apart", correct: true },
+        { text: "Collide", correct: false }
+      ]},
+      { q: "Ring of Fire surrounds?", a: [
+        { text: "Pacific Ocean", correct: true },
+        { text: "Atlantic Ocean", correct: false }
+      ]}
+    ]
+  }
 };
 
 /* ------------------ SHUFFLE ------------------ */
-function shuffle(array){
-for(let i=array.length-1;i>0;i--){
-const j=Math.floor(Math.random()*(i+1));
-[array[i],array[j]]=[array[j],array[i]];
-}
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
 }
 
 /* ------------------ SCREEN CONTROL ------------------ */
-function show(id){
-document.querySelectorAll(".screen").forEach(s=>s.style.display="none");
-document.getElementById(id).style.display="block";
+function show(id) {
+  document.querySelectorAll(".screen").forEach(s => s.style.display = "none");
+  document.getElementById(id).style.display = "block";
 }
-window.show=show;
+window.show = show;
 
-/* ------------------ TEACHER ------------------ */
-window.teacherLogin=function(){
-if(document.getElementById("teacherPass").value==="caves"){
-show("dashboard");
-loadLeaderboard();
-}else alert("Wrong password");
-}
+/* ------------------ AUTO LOGIN ------------------ */
+window.onload = async function () {
+  let savedUser = localStorage.getItem("studentUser");
+  if (savedUser) {
+    currentStudent = savedUser;
+    show("studentMenu");
+  }
+};
 
-window.addStudent=async function(){
-let name=document.getElementById("newStudent").value.trim();
-if(!name) return alert("Enter username");
+/* ------------------ TEACHER LOGIN ------------------ */
+window.teacherLogin = function () {
+  if (document.getElementById("teacherPass").value === "caves") {
+    show("dashboard");
+    loadLeaderboard();
+  } else {
+    alert("Wrong password");
+  }
+};
 
-await setDoc(doc(db,"students",name),{
-score:0
-});
+/* ------------------ ADD STUDENT + PIN ------------------ */
+window.addStudent = async function () {
+  let name = document.getElementById("newStudent").value.trim();
+  if (!name) return alert("Enter username");
 
-document.getElementById("newStudent").value="";
-alert("Student added!");
-loadLeaderboard();
-}
+  // Generate random 4-digit PIN
+  let pin = Math.floor(1000 + Math.random() * 9000);
 
-/* ------------------ STUDENT LOGIN ------------------ */
-window.studentLogin=async function(){
-let name=document.getElementById("studentName").value.trim();
-if(!name) return;
+  await setDoc(doc(db, "students", name), {
+    score: 0,
+    pin: pin
+  });
 
-const snap=await getDoc(doc(db,"students",name));
-if(snap.exists()){
-currentStudent=name;
-show("studentMenu");
-}else alert("Student not found");
-}
+  alert("Student Added!\nUsername: " + name + "\nPIN: " + pin);
+
+  document.getElementById("newStudent").value = "";
+  loadLeaderboard();
+};
+
+/* ------------------ STUDENT LOGIN (USERNAME + PIN) ------------------ */
+window.studentLogin = async function () {
+  let name = document.getElementById("studentName").value.trim();
+  let pin = document.getElementById("studentPin").value.trim();
+
+  if (!name || !pin) return alert("Enter username and PIN");
+
+  const snap = await getDoc(doc(db, "students", name));
+
+  if (snap.exists()) {
+    let data = snap.data();
+
+    if (data.pin == pin) {
+      currentStudent = name;
+
+      // Save login for next time
+      localStorage.setItem("studentUser", name);
+
+      show("studentMenu");
+    } else {
+      alert("Wrong PIN!");
+    }
+  } else {
+    alert("Student not found");
+  }
+};
+
+/* ------------------ LOGOUT ------------------ */
+window.logoutStudent = function () {
+  localStorage.removeItem("studentUser");
+  currentStudent = "";
+  show("login");
+};
 
 /* ------------------ GAME ------------------ */
-window.startStage=function(key){
-score=0;
-currentQuestionIndex=0;
-currentStage=JSON.parse(JSON.stringify(stages[key]));
-shuffle(currentStage.questions);
-show("game");
-showQuestion();
+window.startStage = function (key) {
+  score = 0;
+  currentQuestionIndex = 0;
+  currentStage = JSON.parse(JSON.stringify(stages[key]));
+
+  shuffle(currentStage.questions);
+
+  show("game");
+  showQuestion();
+};
+
+function showQuestion() {
+  let q = currentStage.questions[currentQuestionIndex];
+
+  document.getElementById("stageTitle").innerText = currentStage.title;
+  document.getElementById("question").innerText = q.q;
+
+  let div = document.getElementById("answers");
+  div.innerHTML = "";
+
+  shuffle(q.a);
+
+  q.a.forEach(a => {
+    let btn = document.createElement("button");
+    btn.innerText = a.text;
+    btn.onclick = function () {
+      checkAnswer(a.correct);
+    };
+    div.appendChild(btn);
+  });
 }
 
-function showQuestion(){
-let q=currentStage.questions[currentQuestionIndex];
-document.getElementById("stageTitle").innerText=currentStage.title;
-document.getElementById("question").innerText=q.q;
-let div=document.getElementById("answers");
-div.innerHTML="";
-shuffle(q.a);
-q.a.forEach(a=>{
-let btn=document.createElement("button");
-btn.innerText=a.text;
-btn.onclick=function(){checkAnswer(a.correct)};
-div.appendChild(btn);
-});
+async function checkAnswer(correct) {
+  if (correct) score += 20;
+
+  currentQuestionIndex++;
+
+  if (currentQuestionIndex < currentStage.questions.length) {
+    showQuestion();
+  } else {
+    const ref = doc(db, "students", currentStudent);
+    const snap = await getDoc(ref);
+
+    let total = snap.data().score + score;
+
+    await updateDoc(ref, { score: total });
+
+    alert("Topic Complete!\nStage Score: " + score);
+
+    show("studentMenu");
+  }
 }
 
-async function checkAnswer(correct){
-if(correct) score+=20;
-currentQuestionIndex++;
-if(currentQuestionIndex<currentStage.questions.length){
-showQuestion();
-}else{
-const ref=doc(db,"students",currentStudent);
-const snap=await getDoc(ref);
-let total=snap.data().score+score;
-await updateDoc(ref,{score:total});
-alert("Topic Complete! Score: "+score);
-show("studentMenu");
-}
-}
+/* ------------------ LEADERBOARD (SORTED) ------------------ */
+async function loadLeaderboard() {
+  let div = document.getElementById("board");
+  div.innerHTML = "";
 
-/* ------------------ LEADERBOARD ------------------ */
-async function loadLeaderboard(){
-let div=document.getElementById("board");
-div.innerHTML="";
-const query=await getDocs(collection(db,"students"));
-query.forEach(docSnap=>{
-div.innerHTML+=docSnap.id+" : "+docSnap.data().score+" points<br>";
-});
+  const q = query(collection(db, "students"), orderBy("score", "desc"));
+  const snaps = await getDocs(q);
+
+  snaps.forEach(docSnap => {
+    div.innerHTML +=
+      "🏆 " + docSnap.id + " : " +
+      docSnap.data().score + " points<br>";
+  });
 }
 
 </script>
 
 <style>
-body{
-margin:0;
-font-family:Arial;
-background:#000014;
-color:white;
-text-align:center;
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #000014;
+  color: white;
+  text-align: center;
 }
 
-/* ECHS HEADER */
-#schoolHeader{
-background:#111;
-color:#00e5ff;
-padding:15px;
-font-size:22px;
-font-weight:bold;
-border-bottom:3px solid orange;
+#schoolHeader {
+  background: #111;
+  color: #00e5ff;
+  padding: 15px;
+  font-size: 22px;
+  font-weight: bold;
+  border-bottom: 3px solid orange;
 }
 
-.screen{display:none;padding:30px;}
-#login{display:block;}
+.screen {
+  display: none;
+  padding: 30px;
+}
 
-button,input{
-padding:10px;
-margin:10px;
-border-radius:8px;
-border:none;
-font-size:15px;
+#login {
+  display: block;
 }
-button{
-background:#ff9800;
-cursor:pointer;
+
+button, input {
+  padding: 10px;
+  margin: 10px;
+  border-radius: 8px;
+  border: none;
+  font-size: 15px;
 }
-button:hover{
-background:white;
-color:black;
+
+button {
+  background: #ff9800;
+  cursor: pointer;
+}
+
+button:hover {
+  background: white;
+  color: black;
 }
 </style>
 </head>
@@ -190,39 +296,47 @@ color:black;
 🏫 ECHS KY – Earth & Space Science
 </div>
 
+<!-- LOGIN SCREEN -->
 <div id="login" class="screen">
-<h2>Student Login</h2>
-<input id="studentName" placeholder="Student Username">
-<button onclick="studentLogin()">Login</button>
+  <h2>Student Login</h2>
+  <input id="studentName" placeholder="Student Username">
+  <input id="studentPin" type="password" placeholder="4-digit PIN">
+  <button onclick="studentLogin()">Login</button>
 
-<h2>Teacher Login</h2>
-<input id="teacherPass" type="password" placeholder="Password">
-<button onclick="teacherLogin()">Login</button>
+  <h2>Teacher Login</h2>
+  <input id="teacherPass" type="password" placeholder="Password">
+  <button onclick="teacherLogin()">Login</button>
 </div>
 
+<!-- TEACHER DASHBOARD -->
 <div id="dashboard" class="screen">
-<h2>Teacher Dashboard</h2>
-<input id="newStudent" placeholder="New Student Username">
-<button onclick="addStudent()">Add Student</button>
+  <h2>Teacher Dashboard</h2>
 
-<h3>Leaderboard</h3>
-<div id="board"></div>
+  <input id="newStudent" placeholder="New Student Username">
+  <button onclick="addStudent()">Add Student</button>
 
-<button onclick="show('login')">Logout</button>
+  <h3>Leaderboard</h3>
+  <div id="board"></div>
+
+  <button onclick="show('login')">Logout</button>
 </div>
 
+<!-- STUDENT MENU -->
 <div id="studentMenu" class="screen">
-<h2>Select Topic</h2>
-<button onclick="startStage('stage1')">Big Bang</button>
-<button onclick="startStage('stage2')">Earth Layers</button>
-<button onclick="startStage('stage3')">Plate Tectonics</button>
-<button onclick="show('login')">Logout</button>
+  <h2>Select Topic</h2>
+
+  <button onclick="startStage('stage1')">Big Bang</button>
+  <button onclick="startStage('stage2')">Earth Layers</button>
+  <button onclick="startStage('stage3')">Plate Tectonics</button>
+
+  <button onclick="logoutStudent()">Logout</button>
 </div>
 
+<!-- GAME SCREEN -->
 <div id="game" class="screen">
-<h2 id="stageTitle"></h2>
-<p id="question"></p>
-<div id="answers"></div>
+  <h2 id="stageTitle"></h2>
+  <p id="question"></p>
+  <div id="answers"></div>
 </div>
 
 </body>
