@@ -6,7 +6,7 @@
 <style>
 body{margin:0;font-family:Arial;background:#000014;color:white;text-align:center;}
 .screen{display:none;padding:30px;} #login{display:block;}
-button,input{padding:10px;margin:10px;border-radius:8px;border:none;font-size:15px;}
+button,input,select{padding:10px;margin:10px;border-radius:8px;border:none;font-size:15px;}
 button{background:orange;cursor:pointer;}
 button:hover{background:white;color:black;}
 </style>
@@ -37,13 +37,15 @@ button:hover{background:white;color:black;}
 <input id="newPin" placeholder="PIN (4 digits)">
 <button onclick="addStudent()">Add Student</button>
 
+<h3>Assign Units to Student</h3>
+<select id="selectStudentDropdown"></select><br>
+<div id="unitAssignList"></div>
+<button onclick="saveAssignments()">Save Assignments</button>
+<button onclick="resetStudentProgress()">Reset Student Progress</button>
+
 <h3>Leaderboard</h3>
 <div id="board"></div>
 
-<h3>Assign Units</h3>
-<input id="assignStudent" placeholder="Student Username"><br>
-<div id="unitAssignList"></div>
-<button onclick="saveAssignments()">Save Assignments</button>
 <button onclick="show('login')">Logout</button>
 </div>
 
@@ -62,111 +64,131 @@ button:hover{background:white;color:black;}
 </div>
 
 <script>
-/* ===================== GLOBAL ===================== */
-let currentStudent = "";
-let currentUnitKey = "";
-let currentUnitData = null;
-let currentQuestionIndex = 0;
-let score = 0;
+/* ================= GLOBAL VARIABLES ================= */
+let currentStudent="";
+let currentUnitKey="";
+let currentUnitData=null;
+let currentQuestionIndex=0;
+let score=0;
 
-/* ===================== MUSIC ===================== */
+/* ================= MENU MUSIC ================= */
 let music = new Audio("menu-music.mp3");
 music.loop = true;
 music.volume = 0.3;
 document.getElementById("musicBtn").onclick = function(){
-    if(music.paused){ music.play().catch(()=>alert("Click to allow music")); this.innerText="🔊 Music ON"; }
-    else{ music.pause(); this.innerText="🔇 Music OFF"; }
-}
-
-/* ===================== UNITS ===================== */
-const courseUnits = {
-  unit1: { title: "Unit 1: Big Bang & Origin of the Universe" },
-  unit2: { title: "Unit 2: Stars, Galaxies, and Light Years" },
-  unit3: { title: "Unit 3: Solar System & Planet Motion" },
-  unit4: { title: "Unit 4: Gravity and Orbital Mechanics" },
-  unit5: { title: "Unit 5: Earth’s Interior and Layers" },
-  unit6: { title: "Unit 6: Plate Tectonics & Continental Drift" },
-  unit7: { title: "Unit 7: Earthquakes and Fault Zones" },
-  unit8: { title: "Unit 8: Volcanoes, Mountains, and Subduction" },
-  unit9: { title: "Unit 9: Weather Systems and Air Pressure" },
-  unit10: { title: "Unit 10: Climate vs Weather & Climate Change" },
-  unit11: { title: "Unit 11: Oceans, Currents, and the Water Cycle" },
-  unit12: { title: "Unit 12: Earth’s Resources and Sustainability" },
-  unit13: { title: "Unit 13: Human Impact on Earth Systems" },
-  unit14: { title: "Unit 14: Moon Phases, Eclipses, and Tides" },
-  unit15: { title: "Unit 15: Space Exploration and Satellites" },
-  unit16: { title: "Unit 16: Meteorology and Severe Storms" },
-  unit17: { title: "Unit 17: Earth’s Magnetic Field and Auroras" },
-  unit18: { title: "Unit 18: Rocks, Minerals, and the Rock Cycle" },
-  unit19: { title: "Unit 19: Geologic Time Scale and Fossil Evidence" },
-  unit20: { title: "Unit 20: Final Review & Exam Prep" }
+  if(music.paused){ music.play().catch(()=>alert("Click to allow music")); this.innerText="🔊 Music ON"; }
+  else{ music.pause(); this.innerText="🔇 Music OFF"; }
 };
 
-/* ===================== SAMPLE QUESTIONS ===================== */
-const questionBank = {
+/* ================= UNITS ================= */
+const courseUnits={
+  unit1:{title:"Unit 1: Big Bang & Origin of the Universe"},
+  unit2:{title:"Unit 2: Stars, Galaxies, and Light Years"},
+  unit3:{title:"Unit 3: Solar System & Planet Motion"},
+  unit4:{title:"Unit 4: Gravity and Orbital Mechanics"},
+  unit5:{title:"Unit 5: Earth’s Interior and Layers"},
+  unit6:{title:"Unit 6: Plate Tectonics & Continental Drift"},
+  unit7:{title:"Unit 7: Earthquakes and Fault Zones"},
+  unit8:{title:"Unit 8: Volcanoes, Mountains, and Subduction"},
+  unit9:{title:"Unit 9: Weather Systems and Air Pressure"},
+  unit10:{title:"Unit 10: Climate vs Weather & Climate Change"},
+  unit11:{title:"Unit 11: Oceans, Currents, and the Water Cycle"},
+  unit12:{title:"Unit 12: Earth’s Resources and Sustainability"},
+  unit13:{title:"Unit 13: Human Impact on Earth Systems"},
+  unit14:{title:"Unit 14: Moon Phases, Eclipses, and Tides"},
+  unit15:{title:"Unit 15: Space Exploration and Satellites"},
+  unit16:{title:"Unit 16: Meteorology and Severe Storms"},
+  unit17:{title:"Unit 17: Earth’s Magnetic Field and Auroras"},
+  unit18:{title:"Unit 18: Rocks, Minerals, and the Rock Cycle"},
+  unit19:{title:"Unit 19: Geologic Time Scale and Fossil Evidence"},
+  unit20:{title:"Unit 20: Final Review & Exam Prep"}
+};
+
+/* ================= SAMPLE QUESTIONS ================= */
+const questionBank={
   unit1:[
-    { q:"The Big Bang theory explains…", a:[{text:"The origin of the universe",correct:true},{text:"The origin of oceans",correct:false}]},
-    { q:"The universe is approximately…", a:[{text:"13.8 billion years old",correct:true},{text:"100,000 years old",correct:false}]}
+    {q:"The Big Bang theory explains…", a:[{text:"The origin of the universe",correct:true},{text:"The origin of oceans",correct:false}]},
+    {q:"The universe is approximately…", a:[{text:"13.8 billion years old",correct:true},{text:"100,000 years old",correct:false}]}
   ],
   unit5:[
-    { q:"Earth’s magnetic field is produced by…", a:[{text:"Movement in the outer core",correct:true},{text:"The crust",correct:false}]},
-    { q:"The densest Earth layer is the…", a:[{text:"Inner core",correct:true},{text:"Mantle",correct:false}]}
+    {q:"Earth’s magnetic field is produced by…", a:[{text:"Movement in the outer core",correct:true},{text:"The crust",correct:false}]},
+    {q:"The densest Earth layer is the…", a:[{text:"Inner core",correct:true},{text:"Mantle",correct:false}]}
   ]
 };
 
-/* ===================== LOCALSTORAGE HELPERS ===================== */
+/* ================= LOCALSTORAGE HELPERS ================= */
 function getStudents(){ return JSON.parse(localStorage.getItem("students")||"{}"); }
 function saveStudents(obj){ localStorage.setItem("students",JSON.stringify(obj)); }
 
-/* ===================== SCREEN CONTROL ===================== */
+/* ================= SCREEN CONTROL ================= */
 function show(id){ document.querySelectorAll(".screen").forEach(s=>s.style.display="none"); document.getElementById(id).style.display="block"; }
 
-/* ===================== TEACHER ===================== */
+/* ================= TEACHER FUNCTIONS ================= */
 function teacherLogin(){
-  if(document.getElementById("teacherPass").value==="caves"){ show("dashboard"); loadLeaderboard(); buildUnitList(); }
-  else alert("Wrong password");
+  if(document.getElementById("teacherPass").value==="caves"){ 
+    show("dashboard"); loadLeaderboard(); buildUnitList(); populateStudentDropdown();
+  } else alert("Wrong password");
 }
 
 function addStudent(){
   const name=document.getElementById("newStudent").value.trim();
   const pin=document.getElementById("newPin").value.trim();
   if(!name||!pin||pin.length!==4){ return alert("Enter username and 4-digit PIN"); }
-  let students = getStudents();
+  let students=getStudents();
   if(students[name]) return alert("Username already exists!");
   let allowed={}; Object.keys(courseUnits).forEach(u=>allowed[u]=false);
   students[name]={score:0,pin:pin,allowedUnits:allowed};
   saveStudents(students);
   alert("Student added: "+name);
-  document.getElementById("newStudent").value=""; document.getElementById("newPin").value="";
+  document.getElementById("newStudent").value="";
+  document.getElementById("newPin").value="";
   loadLeaderboard();
+  populateStudentDropdown();
 }
 
 function buildUnitList(){
-  const div = document.getElementById("unitAssignList"); div.innerHTML="";
+  const div=document.getElementById("unitAssignList"); div.innerHTML="";
   let i=1;
   for(let u in courseUnits){
     div.innerHTML+=`<label><input type="checkbox" id="unitCheck${i}"> ${courseUnits[u].title}</label><br>`; i++;
   }
 }
 
+function populateStudentDropdown(){
+  const select=document.getElementById("selectStudentDropdown");
+  const students=getStudents();
+  select.innerHTML="";
+  for(let s in students){ select.innerHTML+=`<option value="${s}">${s}</option>`; }
+}
+
 function saveAssignments(){
-  const student = document.getElementById("assignStudent").value.trim();
-  if(!student) return alert("Enter student username");
-  let students = getStudents();
-  if(!students[student]) return alert("Student not found!");
+  const student=document.getElementById("selectStudentDropdown").value;
+  if(!student) return alert("Select a student");
+  let students=getStudents();
   let assigned={}; let i=1;
   for(let u in courseUnits){ assigned[u]=document.getElementById("unitCheck"+i).checked; i++; }
-  students[student].allowedUnits = assigned;
+  students[student].allowedUnits=assigned;
   saveStudents(students);
   alert("Assignments saved!");
 }
 
-/* ===================== STUDENT ===================== */
+function resetStudentProgress(){
+  const student=document.getElementById("selectStudentDropdown").value;
+  if(!student) return alert("Select a student");
+  let students=getStudents();
+  students[student].score=0;
+  for(let u in courseUnits){ students[student].allowedUnits[u]=false; }
+  saveStudents(students);
+  alert("Student progress reset!");
+  loadLeaderboard();
+}
+
+/* ================= STUDENT FUNCTIONS ================= */
 function studentLogin(){
   const name=document.getElementById("studentName").value.trim();
   const pin=document.getElementById("studentPin").value.trim();
   if(!name||!pin){ return alert("Enter username and PIN"); }
-  let students = getStudents();
+  let students=getStudents();
   if(!students[name]) return alert("Student not found!");
   if(students[name].pin!==pin) return alert("Incorrect PIN!");
   currentStudent=name;
@@ -185,7 +207,7 @@ function loadStudentUnits(){
   }
 }
 
-/* ===================== GAME ===================== */
+/* ================= GAME FUNCTIONS ================= */
 function startUnit(u){
   if(!questionBank[u]) return alert("No questions for this unit yet.");
   currentUnitKey=u; currentUnitData=questionBank[u]; currentQuestionIndex=0; score=0;
@@ -208,15 +230,14 @@ function checkAnswer(correct){
   if(currentQuestionIndex<currentUnitData.length) showQuestion();
   else{
     let students=getStudents();
-    students[currentStudent].score += score;
+    students[currentStudent].score+=score;
     saveStudents(students);
     alert(`Unit complete! Score earned: ${score}`);
-    show("studentMenu");
-    loadStudentUnits();
+    show("studentMenu"); loadStudentUnits();
   }
 }
 
-/* ===================== LEADERBOARD ===================== */
+/* ================= LEADERBOARD ================= */
 function loadLeaderboard(){
   const div=document.getElementById("board"); div.innerHTML="";
   let students=getStudents();
@@ -225,7 +246,7 @@ function loadLeaderboard(){
   arr.forEach(s=>{ div.innerHTML+=`🏆 ${s.name} : ${s.score} points<br>`; });
 }
 
-/* ===================== SHUFFLE ===================== */
+/* ================= SHUFFLE ================= */
 function shuffle(array){
   for(let i=array.length-1;i>0;i--){
     const j=Math.floor(Math.random()*(i+1));
