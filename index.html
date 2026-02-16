@@ -20,10 +20,10 @@ border-radius:12px;
 border:none;
 font-size:16px;
 }
-button{background:#ff9800;cursor:pointer;transition:0.3s;}
+button{background:#ff9800;cursor:pointer;}
 button:hover{background:white;color:black;}
 .card{
-background:rgba(0,0,0,0.85);
+background:rgba(0,0,0,0.9);
 padding:25px;
 border-radius:15px;
 max-width:700px;
@@ -49,52 +49,49 @@ th,td{padding:8px;}
 
 <!-- LOGIN -->
 <div id="login" class="screen active">
-<h1>🌍 Earth & Space Science - Gen Z Style</h1>
+<h1>🌍 Earth & Space Science - Gen Z Mode</h1>
 <h2>Student Login</h2>
-<input id="studentName" placeholder="Type your username, fam">
+<input id="studentName" placeholder="Type your username">
 <button onclick="studentLogin()">Login 🚀</button>
-<p>Ask your teacher to hook you up with an account.</p>
+<p>Ask teacher for your account.</p>
 <button onclick="show('teacherLogin')">Teacher Login 🔑</button>
 </div>
 
 <!-- TEACHER LOGIN -->
 <div id="teacherLogin" class="screen">
 <h2>Teacher Login</h2>
-<input id="teacherPass" type="password" placeholder="Type password">
-<button onclick="teacherLogin()">Login 🔐</button>
-<button onclick="show('login')">Back ↩️</button>
+<input id="teacherPass" type="password" placeholder="Password">
+<button onclick="teacherLogin()">Login</button>
+<button onclick="show('login')">Back</button>
 </div>
 
 <!-- DASHBOARD -->
 <div id="dashboard" class="screen">
 <h1>👩‍🏫 Teacher Dashboard</h1>
 
-<h3>Create Students ✏️</h3>
-<input id="newStudent" placeholder="New student username">
-<button onclick="addStudent()">Add Student ➕</button>
+<h3>Create Students</h3>
+<input id="newStudent" placeholder="Student username">
+<button onclick="addStudent()">Add Student</button>
 
-<h3>Unlock Topics 🔓</h3>
+<h3>Unlock Topics</h3>
 <select id="selectStudent" onchange="loadStudentUnlocks()"></select><br>
-<label><input type="checkbox" id="stage1"> Big Bang & Universe 💥</label><br>
-<label><input type="checkbox" id="stage2"> Earth Layers & Caves 🌎</label><br>
-<label><input type="checkbox" id="stage3"> Volcanoes & Plate Tectonics 🌋</label><br>
-<label><input type="checkbox" id="stage4"> Oceans & Trenches 🌊</label><br>
-<label><input type="checkbox" id="stage5"> Solar System & Space Missions 🪐</label><br>
+<label><input type="checkbox" id="stage1"> Big Bang 💥</label><br>
+<label><input type="checkbox" id="stage2"> Earth Layers 🌎</label><br>
+<label><input type="checkbox" id="stage3"> Plate Tectonics 🌋</label><br>
+<label><input type="checkbox" id="stage4"> Oceans 🌊</label><br>
+<label><input type="checkbox" id="stage5"> Solar System 🪐</label><br>
 <label><input type="checkbox" id="stage6"> Rock Cycle 🪨</label><br>
-<label><input type="checkbox" id="stage7"> Weather & Climate ☁️</label><br>
-<label><input type="checkbox" id="stage8"> Earth Resources & Conservation 🌱</label><br>
-<label><input type="checkbox" id="stage9"> Earthquakes & Plate Boundaries 🌐</label><br>
-<button onclick="saveUnlocks()">Save Unlocks 💾</button>
+<button onclick="saveUnlocks()">Save Unlocks</button>
 
-<h2>🏆 Leaderboard + Detailed Scores</h2>
+<h2>🏆 Leaderboard</h2>
 <div id="board"></div>
-<button onclick="resetBoard()">Reset Scores 🧹</button>
-<button onclick="teacherLogout()">Logout ↩️</button>
+<button onclick="resetBoard()">Reset Scores</button>
+<button onclick="teacherLogout()">Logout</button>
 </div>
 
-<!-- STUDENT GAME -->
+<!-- STUDENT -->
 <div id="studentGame" class="screen">
-<h1>🧭 Pick a Topic, Go Cray</h1>
+<h1>Pick a Topic 👇</h1>
 <div id="stageButtons"></div>
 </div>
 
@@ -103,101 +100,97 @@ th,td{padding:8px;}
 <h2 id="stageTitle"></h2>
 <p id="question"></p>
 <div id="answers"></div>
-<p>⭐ Current Topic Score: <span id="score">0</span></p>
+<p>⭐ Topic Score: <span id="score">0</span></p>
 </div>
 </div>
 
 <script>
-// ---------- GLOBAL ----------
-const teacherPassword = "caves";
+
+const teacherPassword="caves";
 let currentStudent="";
 let score=0;
 let currentStage=null;
 let currentQuestionIndex=0;
 
-// ---------- UTILITY ----------
-function shuffleArray(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
+// Shuffle Function
+function shuffleArray(array){
+for(let i=array.length-1;i>0;i--){
+const j=Math.floor(Math.random()*(i+1));
+[array[i],array[j]]=[array[j],array[i]];
+}
+return array;
 }
 
-// ---------- STAGES ----------
+// STAGES (Expanded Question Banks)
 const stages={
-stage1:{title:"💥 Big Bang & Universe", questions:[
-{q:"Yo, the Big Bang popped off to make?", a:[{text:"The universe 💫",correct:true},{text:"Earth 🌍",correct:false},{text:"Sun ☀️",correct:false}]},
-{q:"CMB is like?", a:[{text:"Radiation from OG universe 🔥",correct:true},{text:"Some star 🌟",correct:false},{text:"Dust 👀",correct:false}]},
-{q:"Hubble peeped galaxies are?", a:[{text:"Expanding 🚀",correct:true},{text:"Chillin' stationary",correct:false},{text:"Collapsing 🕳️",correct:false}]}
+stage1:{title:"💥 Big Bang & Universe",questions:[
+{q:"Big Bang created?",a:[{text:"Universe 💫",correct:true},{text:"Earth",correct:false},{text:"Moon",correct:false}]},
+{q:"Universe age?",a:[{text:"13.8 billion years",correct:true},{text:"6,000 years",correct:false},{text:"1 million",correct:false}]},
+{q:"Hubble saw galaxies?",a:[{text:"Expanding 🚀",correct:true},{text:"Still",correct:false},{text:"Shrinking",correct:false}]},
+{q:"Light year measures?",a:[{text:"Distance",correct:true},{text:"Time",correct:false},{text:"Mass",correct:false}]},
+{q:"Most universe is?",a:[{text:"Dark matter & energy",correct:true},{text:"Stars only",correct:false},{text:"Gas only",correct:false}]}
 ]},
-stage2:{title:"🌎 Earth Layers & Caves", questions:[
-{q:"Which layer is the magnetic flex?", a:[{text:"Outer Core 🧲",correct:true},{text:"Crust ❌",correct:false},{text:"Mantle 😎",correct:false}]},
-{q:"Mammoth Cave is known for?", a:[{text:"Longest cave system 🏞️",correct:true},{text:"Deepest cave ⛏️",correct:false},{text:"Oldest cave 🕰️",correct:false}]},
-{q:"Earth's densest layer is?", a:[{text:"Inner Core 🪨",correct:true},{text:"Crust ❌",correct:false},{text:"Mantle 🤔",correct:false}]}
+stage2:{title:"🌎 Earth Layers",questions:[
+{q:"Magnetic field from?",a:[{text:"Outer core",correct:true},{text:"Crust",correct:false},{text:"Mantle",correct:false}]},
+{q:"Densest layer?",a:[{text:"Inner core",correct:true},{text:"Crust",correct:false},{text:"Mantle",correct:false}]},
+{q:"Lithosphere?",a:[{text:"Crust + upper mantle",correct:true},{text:"Core only",correct:false},{text:"Mantle only",correct:false}]},
+{q:"Heat increases?",a:[{text:"Deeper",correct:true},{text:"Surface",correct:false},{text:"Same",correct:false}]}
 ]},
-stage3:{title:"🌋 Volcanoes & Plate Tectonics", questions:[
-{q:"Mauna Loa is what kinda volcano?", a:[{text:"Shield 🛡️",correct:true},{text:"Composite ⚡",correct:false},{text:"Cinder 🔥",correct:false}]},
-{q:"Earthquakes happen mostly?", a:[{text:"Plate boundaries 🌐",correct:true},{text:"Plate centers ❌",correct:false},{text:"Random places 🤷",correct:false}]},
-{q:"Ring of Fire = ?", a:[{text:"Volcanic region around Pacific 🌏",correct:true},{text:"Atlantic 🤔",correct:false}]}
+stage3:{title:"🌋 Plate Tectonics",questions:[
+{q:"Divergent?",a:[{text:"Move apart",correct:true},{text:"Collide",correct:false},{text:"Slide",correct:false}]},
+{q:"Convergent?",a:[{text:"Collide",correct:true},{text:"Separate",correct:false},{text:"Float",correct:false}]},
+{q:"Transform?",a:[{text:"Slide past",correct:true},{text:"Crash",correct:false},{text:"Sink",correct:false}]},
+{q:"Ring of Fire?",a:[{text:"Pacific region",correct:true},{text:"Atlantic",correct:false},{text:"Arctic",correct:false}]}
 ]},
-stage4:{title:"🌊 Oceans & Trenches", questions:[
-{q:"Mariana Trench formed by?", a:[{text:"Subduction 🔽",correct:true},{text:"Erosion 🌬️",correct:false},{text:"Sedimentation ⛏️",correct:false}]},
-{q:"Biggest ocean is?", a:[{text:"Pacific 🌊",correct:true},{text:"Atlantic ❌",correct:false},{text:"Indian 🌏",correct:false}]},
-{q:"Ocean currents happen cuz?", a:[{text:"Wind & rotation 🌪️",correct:true},{text:"Earthquakes 😳",correct:false},{text:"Tides only 🌙",correct:false}]}
+stage4:{title:"🌊 Oceans",questions:[
+{q:"Largest ocean?",a:[{text:"Pacific",correct:true},{text:"Atlantic",correct:false},{text:"Indian",correct:false}]},
+{q:"Deepest trench?",a:[{text:"Mariana",correct:true},{text:"Java",correct:false},{text:"Puerto Rico",correct:false}]},
+{q:"Currents caused by?",a:[{text:"Wind + rotation",correct:true},{text:"Quakes",correct:false},{text:"Fish",correct:false}]},
+{q:"Salinity?",a:[{text:"Saltiness",correct:true},{text:"Heat",correct:false},{text:"Depth",correct:false}]}
 ]},
-stage5:{title:"🪐 Solar System & Space Missions", questions:[
-{q:"Perseverance rover is chillin' on?", a:[{text:"Mars 🔴",correct:true},{text:"Venus ❌",correct:false},{text:"Moon 🌕",correct:false}]},
-{q:"Moon's surface = ?", a:[{text:"Regolith 🪨",correct:true},{text:"Water 💧",correct:false},{text:"Soil 🌱",correct:false}]},
-{q:"Sun = ?", a:[{text:"Star 🌟",correct:true},{text:"Planet ❌",correct:false},{text:"Asteroid 🪐",correct:false}]}
+stage5:{title:"🪐 Solar System",questions:[
+{q:"Sun is a?",a:[{text:"Star",correct:true},{text:"Planet",correct:false},{text:"Asteroid",correct:false}]},
+{q:"Mars rover Perseverance on?",a:[{text:"Mars",correct:true},{text:"Venus",correct:false},{text:"Moon",correct:false}]},
+{q:"Moon surface?",a:[{text:"Regolith",correct:true},{text:"Water",correct:false},{text:"Grass",correct:false}]},
+{q:"Closest planet to Sun?",a:[{text:"Mercury",correct:true},{text:"Venus",correct:false},{text:"Earth",correct:false}]}
 ]},
-stage6:{title:"🪨 Rock Cycle", questions:[
-{q:"Igneous rocks formed by?", a:[{text:"Magma/lava cooling 🔥",correct:true},{text:"Sediments compression ❌",correct:false},{text:"Metamorphism 🤔",correct:false}]},
-{q:"Which rocks can become metamorphic?", a:[{text:"Igneous + Sedimentary 💪",correct:true},{text:"Just Sedimentary ❌",correct:false},{text:"Just Igneous ❌",correct:false}]},
-{q:"Sedimentary rocks mainly made by?", a:[{text:"Sediment compression 🏗️",correct:true},{text:"Melting/cooling ❌",correct:false},{text:"Pressure only ❌",correct:false}]}
-]},
-stage7:{title:"☁️ Weather & Climate", questions:[
-{q:"What powers weather?", a:[{text:"Sun 🌞",correct:true},{text:"Moon 🌙",correct:false},{text:"Earthquakes 😳",correct:false}]},
-{q:"Climate = ?", a:[{text:"Average weather 🔥",correct:true},{text:"Daily vibes ❌",correct:false},{text:"Air pressure only ❌",correct:false}]}
-]},
-stage8:{title:"🌱 Earth Resources & Conservation", questions:[
-{q:"Fossil fuels = ?", a:[{text:"Nonrenewable ❌🔥",correct:true},{text:"Renewable ✅",correct:false},{text:"Water only ❌",correct:false}]},
-{q:"Recycling = ?", a:[{text:"Conserve resources 💯",correct:true},{text:"Pollute more ❌",correct:false},{text:"Destroy nature ❌",correct:false}]}
-]},
-stage9:{title:"🌐 Earthquakes & Plate Boundaries", questions:[
-{q:"Quakes happen mostly?", a:[{text:"Plate boundaries 🌍",correct:true},{text:"Random areas ❌",correct:false},{text:"Ocean centers 🌊",correct:false}]},
-{q:"Seismic waves = ?", a:[{text:"Earthquake energy 🌪️",correct:true},{text:"Ocean waves ❌",correct:false},{text:"Wind waves ❌",correct:false}]}
+stage6:{title:"🪨 Rock Cycle",questions:[
+{q:"Igneous forms from?",a:[{text:"Cooling magma",correct:true},{text:"Sediments",correct:false},{text:"Pressure only",correct:false}]},
+{q:"Metamorphic from?",a:[{text:"Heat + pressure",correct:true},{text:"Melting fully",correct:false},{text:"Cooling lava",correct:false}]},
+{q:"Sedimentary forms by?",a:[{text:"Compacted sediments",correct:true},{text:"Magma cooling",correct:false},{text:"Core heat",correct:false}]},
+{q:"Weathering does?",a:[{text:"Break rocks down",correct:true},{text:"Melt rocks",correct:false},{text:"Create magma",correct:false}]}
 ]}
 };
 
-// ---------- LOCAL STORAGE ----------
-let students = JSON.parse(localStorage.getItem("students")) || {};
+// STORAGE
+let students=JSON.parse(localStorage.getItem("students"))||{};
 
-// ---------- UI ----------
-function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); document.getElementById(id).classList.add("active");}
+// UI
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById(id).classList.add("active");}
 
-// ---------- TEACHER ----------
-function teacherLogin(){let pass=document.getElementById("teacherPass").value; if(pass===teacherPassword){show("dashboard"); loadStudents(); loadLeaderboard();} else alert("Wrong password fam 🤨");}
+// TEACHER
+function teacherLogin(){let pass=document.getElementById("teacherPass").value;if(pass===teacherPassword){show("dashboard");loadStudents();loadLeaderboard();}else alert("Wrong password");}
 function teacherLogout(){show("login");}
 
-// ---------- STUDENT MANAGEMENT ----------
-function addStudent(){let name=document.getElementById("newStudent").value.trim(); if(!name){alert("Type a username smh"); return;} if(!students[name]) students[name]={stage1:false,stage2:false,stage3:false,stage4:false,stage5:false,stage6:false,stage7:false,stage8:false,stage9:false,score:0,topicScores:{}}; localStorage.setItem("students",JSON.stringify(students)); document.getElementById("newStudent").value=""; loadStudents(); alert("Added! 🎉");}
-function loadStudents(){let select=document.getElementById("selectStudent"); select.innerHTML=""; for(let s in students){let opt=document.createElement("option"); opt.value=s; opt.text=s; select.add(opt);} loadStudentUnlocks();}
-function loadStudentUnlocks(){let s=document.getElementById("selectStudent").value; if(!s) return; for(let i=1;i<=9;i++) document.getElementById("stage"+i).checked = students[s]["stage"+i];}
-function saveUnlocks(){let s=document.getElementById("selectStudent").value; for(let i=1;i<=9;i++) students[s]["stage"+i]=document.getElementById("stage"+i).checked; localStorage.setItem("students",JSON.stringify(students)); alert("Unlocks saved 🔓 for "+s);}
+// STUDENTS
+function addStudent(){let name=document.getElementById("newStudent").value.trim();if(!name)return alert("Enter username");if(!students[name])students[name]={stage1:false,stage2:false,stage3:false,stage4:false,stage5:false,stage6:false,score:0,topicScores:{}};localStorage.setItem("students",JSON.stringify(students));loadStudents();}
+function loadStudents(){let select=document.getElementById("selectStudent");select.innerHTML="";for(let s in students){let opt=document.createElement("option");opt.value=s;opt.text=s;select.add(opt);}loadStudentUnlocks();}
+function loadStudentUnlocks(){let s=document.getElementById("selectStudent").value;if(!s)return;for(let i=1;i<=6;i++)document.getElementById("stage"+i).checked=students[s]["stage"+i];}
+function saveUnlocks(){let s=document.getElementById("selectStudent").value;for(let i=1;i<=6;i++)students[s]["stage"+i]=document.getElementById("stage"+i).checked;localStorage.setItem("students",JSON.stringify(students));alert("Saved");}
 
-// ---------- STUDENT LOGIN ----------
-function studentLogin(){let name=document.getElementById("studentName").value.trim(); if(!students[name]){alert("Username not found 🤔"); return;} currentStudent=name; loadStudentStages();}
-function loadStudentStages(){let div=document.getElementById("stageButtons"); div.innerHTML=""; let unlocks=students[currentStudent]; for(let i=1;i<=9;i++){if(unlocks["stage"+i]){let btn=document.createElement("button"); btn.innerText=stages["stage"+i].title; btn.onclick=()=>startStage("stage"+i); div.appendChild(btn);}} show("studentGame");}
+// STUDENT LOGIN
+function studentLogin(){let name=document.getElementById("studentName").value.trim();if(!students[name])return alert("Username not found");currentStudent=name;loadStudentStages();}
+function loadStudentStages(){let div=document.getElementById("stageButtons");div.innerHTML="";for(let i=1;i<=6;i++){if(students[currentStudent]["stage"+i]){let btn=document.createElement("button");btn.innerText=stages["stage"+i].title;btn.onclick=function(){startStage("stage"+i)};div.appendChild(btn);}}show("studentGame");}
 
-// ---------- GAME ----------
-function startStage(key){score=0; currentQuestionIndex=0; currentStage={...stages[key]}; currentStage.questions=shuffleArray([...currentStage.questions]); show("game"); showQuestion();}
-function showQuestion(){let q=currentStage.questions[currentQuestionIndex]; document.getElementById("stageTitle").innerText=currentStage.title; document.getElementById("question").innerText=q.q; let div=document.getElementById("answers"); div.innerHTML=""; let answersShuffled=shuffleArray([...q.a]); answersShuffled.forEach(a=>{let btn=document.createElement("button"); btn.className="answer"; btn.innerText=a.text; btn.onclick=()=>checkAnswer(a.correct); div.appendChild(btn);});}
-function checkAnswer(correct){if(correct) score+=20; currentQuestionIndex++; if(currentQuestionIndex<currentStage.questions.length){showQuestion();} else{students[currentStudent].score+=score; students[currentStudent].topicScores[currentStage.title]=score; localStorage.setItem("students",JSON.stringify(students)); alert("Topic done! 🔥 Score: "+score); loadStudentStages(); loadLeaderboard();}}
+// GAME
+function startStage(key){score=0;currentQuestionIndex=0;currentStage=JSON.parse(JSON.stringify(stages[key]));shuffleArray(currentStage.questions);show("game");showQuestion();}
+function showQuestion(){let q=currentStage.questions[currentQuestionIndex];document.getElementById("stageTitle").innerText=currentStage.title;document.getElementById("question").innerText=q.q;let div=document.getElementById("answers");div.innerHTML="";shuffleArray(q.a);q.a.forEach(function(a){let btn=document.createElement("button");btn.className="answer";btn.innerText=a.text;btn.onclick=function(){checkAnswer(a.correct)};div.appendChild(btn);});document.getElementById("score").innerText=score;}
+function checkAnswer(correct){if(correct)score+=20;currentQuestionIndex++;if(currentQuestionIndex<currentStage.questions.length){showQuestion();}else{students[currentStudent].score+=score;students[currentStudent].topicScores[currentStage.title]=score;localStorage.setItem("students",JSON.stringify(students));alert("Topic done! Score: "+score);loadStudentStages();loadLeaderboard();}}
 
-// ---------- LEADERBOARD ----------
-function loadLeaderboard(){let html="<table><tr><th>Name</th><th>Total Score</th><th>Topic Scores</th></tr>"; for(let s in students){let topics=students[s].topicScores||{}; let topicStr=Object.entries(topics).map(([k,v])=>`${k}: ${v}`).join("<br>"); html+="<tr><td>"+s+"</td><td>"+students[s].score+"</td><td>"+topicStr+"</td></tr>";} html+="</table>"; document.getElementById("board").innerHTML=html;}
-function resetBoard(){for(let s in students){students[s].score=0; students[s].topicScores={};} localStorage.setItem("students",JSON.stringify(students)); loadLeaderboard();}
+// LEADERBOARD
+function loadLeaderboard(){let html="<table><tr><th>Name</th><th>Total</th></tr>";for(let s in students){html+="<tr><td>"+s+"</td><td>"+students[s].score+"</td></tr>";}html+="</table>";document.getElementById("board").innerHTML=html;}
+function resetBoard(){for(let s in students){students[s].score=0;students[s].topicScores={};}localStorage.setItem("students",JSON.stringify(students));loadLeaderboard();}
+
 </script>
 </body>
 </html>
