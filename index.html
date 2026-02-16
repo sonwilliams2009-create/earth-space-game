@@ -106,6 +106,7 @@ window.onload = async function () {
   if (savedUser) {
     currentStudent = savedUser;
     show("studentMenu");
+    loadStudentTopics();
   }
 };
 
@@ -119,23 +120,50 @@ window.teacherLogin = function () {
   }
 };
 
-/* ------------------ ADD STUDENT + PIN ------------------ */
+/* ------------------ ADD STUDENT + PIN + DEFAULT TOPICS ------------------ */
 window.addStudent = async function () {
   let name = document.getElementById("newStudent").value.trim();
   if (!name) return alert("Enter username");
 
-  // Generate random 4-digit PIN
   let pin = Math.floor(1000 + Math.random() * 9000);
 
   await setDoc(doc(db, "students", name), {
     score: 0,
-    pin: pin
+    pin: pin,
+
+    // Teacher controls unlocked topics
+    allowedTopics: {
+      stage1: true,
+      stage2: false,
+      stage3: false
+    }
   });
 
   alert("Student Added!\nUsername: " + name + "\nPIN: " + pin);
 
   document.getElementById("newStudent").value = "";
   loadLeaderboard();
+};
+
+/* ------------------ SAVE TOPIC ACCESS ------------------ */
+window.saveTopics = async function () {
+  let student = document.getElementById("topicStudent").value.trim();
+  if (!student) return alert("Enter student username");
+
+  const ref = doc(db, "students", student);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) return alert("Student not found!");
+
+  let topics = {
+    stage1: document.getElementById("unlock1").checked,
+    stage2: document.getElementById("unlock2").checked,
+    stage3: document.getElementById("unlock3").checked
+  };
+
+  await updateDoc(ref, { allowedTopics: topics });
+
+  alert("Topics updated for " + student);
 };
 
 /* ------------------ STUDENT LOGIN (USERNAME + PIN) ------------------ */
@@ -152,11 +180,10 @@ window.studentLogin = async function () {
 
     if (data.pin == pin) {
       currentStudent = name;
-
-      // Save login for next time
       localStorage.setItem("studentUser", name);
 
       show("studentMenu");
+      loadStudentTopics();
     } else {
       alert("Wrong PIN!");
     }
@@ -164,6 +191,26 @@ window.studentLogin = async function () {
     alert("Student not found");
   }
 };
+
+/* ------------------ LOAD STUDENT TOPICS ------------------ */
+async function loadStudentTopics() {
+  const snap = await getDoc(doc(db, "students", currentStudent));
+  let data = snap.data();
+
+  let div = document.getElementById("topicButtons");
+  div.innerHTML = "";
+
+  for (let key in stages) {
+    if (data.allowedTopics[key]) {
+      let btn = document.createElement("button");
+      btn.innerText = stages[key].title;
+      btn.onclick = function () {
+        startStage(key);
+      };
+      div.appendChild(btn);
+    }
+  }
+}
 
 /* ------------------ LOGOUT ------------------ */
 window.logoutStudent = function () {
@@ -223,6 +270,7 @@ async function checkAnswer(correct) {
     alert("Topic Complete!\nStage Score: " + score);
 
     show("studentMenu");
+    loadStudentTopics();
   }
 }
 
@@ -318,16 +366,22 @@ button:hover {
   <h3>Leaderboard</h3>
   <div id="board"></div>
 
+  <h3>Unlock Topics for Student</h3>
+  <input id="topicStudent" placeholder="Student Username">
+
+  <label><input type="checkbox" id="unlock1"> Big Bang</label><br>
+  <label><input type="checkbox" id="unlock2"> Earth Layers</label><br>
+  <label><input type="checkbox" id="unlock3"> Plate Tectonics</label><br>
+
+  <button onclick="saveTopics()">Save Topic Access</button>
+
   <button onclick="show('login')">Logout</button>
 </div>
 
 <!-- STUDENT MENU -->
 <div id="studentMenu" class="screen">
   <h2>Select Topic</h2>
-
-  <button onclick="startStage('stage1')">Big Bang</button>
-  <button onclick="startStage('stage2')">Earth Layers</button>
-  <button onclick="startStage('stage3')">Plate Tectonics</button>
+  <div id="topicButtons"></div>
 
   <button onclick="logoutStudent()">Logout</button>
 </div>
