@@ -3,9 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Earth & Space Science Classroom</title>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <style>
 body{
 margin:0;
@@ -53,13 +50,12 @@ table{margin:auto;background:black;padding:10px;}
 <input id="studentName" placeholder="Username">
 <button onclick="studentLogin()">Login</button>
 <p>Ask your teacher for your username.</p>
-<button onclick="showTeacherLogin()">Teacher Login</button>
+<button onclick="show('teacherLogin')">Teacher Login</button>
 </div>
 
 <!-- TEACHER LOGIN -->
 <div id="teacherLogin" class="screen">
 <h2>Teacher Login</h2>
-<input id="teacherEmail" type="email" placeholder="Teacher Email">
 <input id="teacherPass" type="password" placeholder="Password">
 <button onclick="teacherLogin()">Login</button>
 <button onclick="show('login')">Back</button>
@@ -74,7 +70,7 @@ table{margin:auto;background:black;padding:10px;}
 <button onclick="addStudent()">Add Student</button>
 
 <h3>Unlock Topics for Students</h3>
-<select id="selectStudent"></select><br>
+<select id="selectStudent" onchange="loadStudentUnlocks()"></select><br>
 <label><input type="checkbox" id="stage1"> Big Bang & Universe</label><br>
 <label><input type="checkbox" id="stage2"> Earth Layers & Caves</label><br>
 <label><input type="checkbox" id="stage3"> Volcanoes & Plate Tectonics</label><br>
@@ -108,24 +104,12 @@ table{margin:auto;background:black;padding:10px;}
 </div>
 
 <script>
-// ---------- FIREBASE CONFIG ----------
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const auth = firebase.auth();
-
 // ---------- GLOBAL VARIABLES ----------
-let currentStudent="";
-let score=0;
-let currentStage=null;
-let currentQuestionIndex=0;
+const teacherPassword = "caves"; // hidden password
+let currentStudent = "";
+let score = 0;
+let currentStage = null;
+let currentQuestionIndex = 0;
 
 // ---------- QUIZ DATA ----------
 const stages = {
@@ -173,133 +157,134 @@ stage9:{title:"🌐 Earthquakes & Plate Boundaries", questions:[
 ]}
 };
 
+// ---------- LOCAL STORAGE DATA ----------
+let students = JSON.parse(localStorage.getItem("students")) || {};
+let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || {};
+
 // ---------- UI FUNCTIONS ----------
 function show(id){
-    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-    document.getElementById(id).classList.add("active");
+document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+document.getElementById(id).classList.add("active");
 }
 
 // ---------- TEACHER LOGIN ----------
-async function teacherLogin(){
-    const email = document.getElementById("teacherEmail").value.trim();
-    const pass = document.getElementById("teacherPass").value.trim();
-    try {
-        await auth.signInWithEmailAndPassword(email, pass);
-        show("dashboard");
-        loadStudents();
-        loadLeaderboard();
-    } catch(e) { alert("Login failed: "+e.message);}
+function teacherLogin(){
+let pass = document.getElementById("teacherPass").value;
+if(pass === teacherPassword){
+show("dashboard");
+loadStudents();
+loadLeaderboard();
+} else alert("Wrong password");
 }
-function teacherLogout(){ auth.signOut(); show("login"); }
+function teacherLogout(){ show("login"); }
 
 // ---------- STUDENT MANAGEMENT ----------
-async function addStudent(){
-    let name=document.getElementById("newStudent").value.trim();
-    if(!name){alert("Enter username"); return;}
-    const doc = db.collection("students").doc(name);
-    const snapshot = await doc.get();
-    if(!snapshot.exists){
-        await doc.set({stage1:false, stage2:false, stage3:false, stage4:false, stage5:false, stage6:false, stage7:false, stage8:false, stage9:false, score:0});
-        alert("Student added");
-    } else { alert("Student already exists"); }
-    document.getElementById("newStudent").value="";
-    loadStudents();
+function addStudent(){
+let name = document.getElementById("newStudent").value.trim();
+if(!name){alert("Enter username"); return;}
+if(!students[name]) students[name] = {stage1:false,stage2:false,stage3:false,stage4:false,stage5:false,stage6:false,stage7:false,stage8:false,stage9:false, score:0};
+localStorage.setItem("students",JSON.stringify(students));
+document.getElementById("newStudent").value="";
+loadStudents();
+alert("Student added");
 }
 
-async function loadStudents(){
-    const select=document.getElementById("selectStudent");
-    select.innerHTML="";
-    const snapshot = await db.collection("students").get();
-    snapshot.forEach(doc=>{
-        let opt = document.createElement("option"); opt.value=doc.id; opt.text=doc.id; select.add(opt);
-    });
-    loadStudentUnlocks();
+function loadStudents(){
+let select = document.getElementById("selectStudent");
+select.innerHTML="";
+for(let s in students){
+let opt = document.createElement("option");
+opt.value = s; opt.text = s; select.add(opt);
+}
+loadStudentUnlocks();
 }
 
-async function loadStudentUnlocks(){
-    const s = document.getElementById("selectStudent").value;
-    const doc = await db.collection("students").doc(s).get();
-    if(doc.exists){
-        const unlocks = doc.data();
-        for(let i=1;i<=9;i++){ document.getElementById("stage"+i).checked = unlocks["stage"+i]||false; }
-    }
+function loadStudentUnlocks(){
+let s = document.getElementById("selectStudent").value;
+let unlocks = students[s];
+if(!unlocks) return;
+for(let i=1;i<=9;i++){
+document.getElementById("stage"+i).checked = unlocks["stage"+i];
+}
 }
 
-async function saveUnlocks(){
-    const s = document.getElementById("selectStudent").value;
-    const unlocks = {};
-    for(let i=1;i<=9;i++){ unlocks["stage"+i] = document.getElementById("stage"+i).checked; }
-    await db.collection("students").doc(s).update(unlocks);
-    alert("Unlocks saved for "+s);
+function saveUnlocks(){
+let s = document.getElementById("selectStudent").value;
+for(let i=1;i<=9;i++){
+students[s]["stage"+i] = document.getElementById("stage"+i).checked;
+}
+localStorage.setItem("students",JSON.stringify(students));
+alert("Unlocks saved for "+s);
 }
 
 // ---------- STUDENT LOGIN ----------
-async function studentLogin(){
-    const name = document.getElementById("studentName").value.trim();
-    const doc = await db.collection("students").doc(name).get();
-    if(!doc.exists){ alert("Username not found. Ask your teacher to create your account."); return; }
-    currentStudent = name;
-    loadStudentStages();
+function studentLogin(){
+let name = document.getElementById("studentName").value.trim();
+if(!students[name]){alert("Username not found"); return;}
+currentStudent = name;
+loadStudentStages();
 }
 
-async function loadStudentStages(){
-    const div=document.getElementById("stageButtons"); div.innerHTML="";
-    const doc = await db.collection("students").doc(currentStudent).get();
-    const unlocks = doc.data();
-    for(let i=1;i<=9;i++){
-        if(unlocks["stage"+i]){
-            let btn=document.createElement("button");
-            btn.innerText=stages["stage"+i].title;
-            btn.onclick=()=>startStage("stage"+i);
-            div.appendChild(btn);
-        }
-    }
-    show("studentGame");
+function loadStudentStages(){
+let div = document.getElementById("stageButtons");
+div.innerHTML="";
+let unlocks = students[currentStudent];
+for(let i=1;i<=9;i++){
+if(unlocks["stage"+i]){
+let btn = document.createElement("button");
+btn.innerText = stages["stage"+i].title;
+btn.onclick = ()=>startStage("stage"+i);
+div.appendChild(btn);
+}
+}
+show("studentGame");
 }
 
 // ---------- GAME LOGIC ----------
-function startStage(key){ score=0; currentQuestionIndex=0; currentStage=stages[key]; show("game"); showQuestion(); }
+function startStage(key){
+score=0; currentQuestionIndex=0; currentStage=stages[key]; show("game"); showQuestion();
+}
+
 function showQuestion(){
-    let q=currentStage.questions[currentQuestionIndex];
-    document.getElementById("stageTitle").innerText=currentStage.title;
-    document.getElementById("question").innerText=q.q;
-    const div=document.getElementById("answers"); div.innerHTML="";
-    q.a.forEach(a=>{
-        let btn=document.createElement("button");
-        btn.className="answer"; btn.innerText=a.text;
-        btn.onclick=()=>checkAnswer(a.correct);
-        div.appendChild(btn);
-    });
+let q = currentStage.questions[currentQuestionIndex];
+document.getElementById("stageTitle").innerText = currentStage.title;
+document.getElementById("question").innerText = q.q;
+let div = document.getElementById("answers"); div.innerHTML="";
+q.a.forEach(a=>{
+let btn = document.createElement("button");
+btn.className = "answer"; btn.innerText = a.text;
+btn.onclick = ()=>checkAnswer(a.correct);
+div.appendChild(btn);
+});
 }
 
-async function checkAnswer(correct){
-    if(correct) score+=20;
-    currentQuestionIndex++;
-    if(currentQuestionIndex<currentStage.questions.length){ showQuestion(); }
-    else { await saveScore(); alert("Topic Complete! Score: "+score); loadStudentStages(); }
+function checkAnswer(correct){
+if(correct) score+=20;
+currentQuestionIndex++;
+if(currentQuestionIndex < currentStage.questions.length){ showQuestion(); }
+else{
+students[currentStudent].score += score;
+localStorage.setItem("students",JSON.stringify(students));
+alert("Topic Complete! Score: "+score);
+loadStudentStages();
+loadLeaderboard();
 }
-
-async function saveScore(){
-    const docRef = db.collection("students").doc(currentStudent);
-    const doc = await docRef.get();
-    const prevScore = doc.data().score || 0;
-    await docRef.update({score: prevScore+score});
-    loadLeaderboard();
 }
 
 // ---------- LEADERBOARD ----------
-async function loadLeaderboard(){
-    const snapshot = await db.collection("students").get();
-    let html="<table><tr><th>Name</th><th>Score</th></tr>";
-    snapshot.forEach(doc=>{ html+="<tr><td>"+doc.id+"</td><td>"+(doc.data().score||0)+"</td></tr>"; });
-    html+="</table>";
-    document.getElementById("board").innerHTML=html;
+function loadLeaderboard(){
+let html="<table><tr><th>Name</th><th>Score</th></tr>";
+for(let s in students){
+html += "<tr><td>"+s+"</td><td>"+students[s].score+"</td></tr>";
+}
+html+="</table>";
+document.getElementById("board").innerHTML = html;
 }
 
-async function resetBoard(){
-    const snapshot = await db.collection("students").get();
-    for(const doc of snapshot.docs){ await db.collection("students").doc(doc.id).update({score:0}); }
-    loadLeaderboard();
+function resetBoard(){
+for(let s in students) students[s].score = 0;
+localStorage.setItem("students",JSON.stringify(students));
+loadLeaderboard();
 }
 </script>
 </body>
