@@ -59,6 +59,7 @@ table{margin:auto;background:black;padding:10px;}
 <!-- TEACHER LOGIN -->
 <div id="teacherLogin" class="screen">
 <h2>Teacher Login</h2>
+<input id="teacherEmail" type="email" placeholder="Teacher Email">
 <input id="teacherPass" type="password" placeholder="Password">
 <button onclick="teacherLogin()">Login</button>
 <button onclick="show('login')">Back</button>
@@ -79,11 +80,16 @@ table{margin:auto;background:black;padding:10px;}
 <label><input type="checkbox" id="stage3"> Volcanoes & Plate Tectonics</label><br>
 <label><input type="checkbox" id="stage4"> Oceans & Trenches</label><br>
 <label><input type="checkbox" id="stage5"> Solar System & Space Missions</label><br>
+<label><input type="checkbox" id="stage6"> Rock Cycle</label><br>
+<label><input type="checkbox" id="stage7"> Weather & Climate</label><br>
+<label><input type="checkbox" id="stage8"> Earth Resources & Conservation</label><br>
+<label><input type="checkbox" id="stage9"> Earthquakes & Plate Boundaries</label><br>
 <button onclick="saveUnlocks()">Save Unlocks</button>
 
 <h2>🏆 Leaderboard</h2>
 <div id="board"></div>
 <button onclick="resetBoard()">Reset Leaderboard</button>
+<button onclick="teacherLogout()">Logout</button>
 </div>
 
 <!-- STUDENT GAME -->
@@ -113,6 +119,7 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const auth = firebase.auth();
 
 // ---------- GLOBAL VARIABLES ----------
 let currentStudent="";
@@ -146,6 +153,23 @@ stage5:{title:"🪐 Solar System & Space Missions", questions:[
 {q:"Perseverance rover explores?", a:[{text:"Mars",correct:true},{text:"Venus",correct:false},{text:"Moon",correct:false}]},
 {q:"Moon's surface is?", a:[{text:"Regolith",correct:true},{text:"Water",correct:false},{text:"Rocky soil",correct:false}]},
 {q:"Sun is a?", a:[{text:"Star",correct:true},{text:"Planet",correct:false},{text:"Asteroid",correct:false}]}
+]},
+stage6:{title:"🪨 Rock Cycle", questions:[
+{q:"Igneous rocks are formed by?", a:[{text:"Cooling of magma or lava",correct:true},{text:"Compression of sediments",correct:false},{text:"Metamorphism",correct:false}]},
+{q:"Which type of rock can change into metamorphic rock?", a:[{text:"Igneous and sedimentary",correct:true},{text:"Only sedimentary",correct:false},{text:"Only igneous",correct:false}]},
+{q:"Sedimentary rocks are formed mainly by?", a:[{text:"Accumulation and compression of sediments",correct:true},{text:"Melting and cooling",correct:false},{text:"Heat and pressure",correct:false}]}
+]},
+stage7:{title:"☁️ Weather & Climate", questions:[
+{q:"What drives Earth's weather?", a:[{text:"Sun's energy",correct:true},{text:"Moon's gravity",correct:false},{text:"Earthquakes",correct:false}]},
+{q:"Climate is defined as?", a:[{text:"Average weather over time",correct:true},{text:"Daily weather",correct:false},{text:"Air pressure only",correct:false}]}
+]},
+stage8:{title:"🌱 Earth Resources & Conservation", questions:[
+{q:"Fossil fuels are?", a:[{text:"Nonrenewable resources",correct:true},{text:"Renewable resources",correct:false},{text:"Water sources",correct:false}]},
+{q:"Recycling helps?", a:[{text:"Conserve resources",correct:true},{text:"Increase pollution",correct:false},{text:"Destroy ecosystems",correct:false}]}
+]},
+stage9:{title:"🌐 Earthquakes & Plate Boundaries", questions:[
+{q:"Where do most earthquakes occur?", a:[{text:"Plate boundaries",correct:true},{text:"Plate interiors",correct:false},{text:"Ocean centers",correct:false}]},
+{q:"Seismic waves are?", a:[{text:"Energy waves from earthquakes",correct:true},{text:"Ocean waves",correct:false},{text:"Wind waves",correct:false}]}
 ]}
 };
 
@@ -156,15 +180,17 @@ function show(id){
 }
 
 // ---------- TEACHER LOGIN ----------
-function showTeacherLogin(){ show('teacherLogin'); }
-function teacherLogin(){
+async function teacherLogin(){
+    const email = document.getElementById("teacherEmail").value.trim();
     const pass = document.getElementById("teacherPass").value.trim();
-    if(pass === "caves"){ // simple password check
+    try {
+        await auth.signInWithEmailAndPassword(email, pass);
         show("dashboard");
         loadStudents();
         loadLeaderboard();
-    } else alert("Wrong password");
+    } catch(e) { alert("Login failed: "+e.message);}
 }
+function teacherLogout(){ auth.signOut(); show("login"); }
 
 // ---------- STUDENT MANAGEMENT ----------
 async function addStudent(){
@@ -173,11 +199,9 @@ async function addStudent(){
     const doc = db.collection("students").doc(name);
     const snapshot = await doc.get();
     if(!snapshot.exists){
-        await doc.set({stage1:false, stage2:false, stage3:false, stage4:false, stage5:false, score:0});
+        await doc.set({stage1:false, stage2:false, stage3:false, stage4:false, stage5:false, stage6:false, stage7:false, stage8:false, stage9:false, score:0});
         alert("Student added");
-    } else {
-        alert("Student already exists");
-    }
+    } else { alert("Student already exists"); }
     document.getElementById("newStudent").value="";
     loadStudents();
 }
@@ -187,10 +211,7 @@ async function loadStudents(){
     select.innerHTML="";
     const snapshot = await db.collection("students").get();
     snapshot.forEach(doc=>{
-        let opt = document.createElement("option");
-        opt.value=doc.id;
-        opt.text=doc.id;
-        select.add(opt);
+        let opt = document.createElement("option"); opt.value=doc.id; opt.text=doc.id; select.add(opt);
     });
     loadStudentUnlocks();
 }
@@ -200,18 +221,14 @@ async function loadStudentUnlocks(){
     const doc = await db.collection("students").doc(s).get();
     if(doc.exists){
         const unlocks = doc.data();
-        for(let i=1;i<=5;i++){
-            document.getElementById("stage"+i).checked = unlocks["stage"+i]||false;
-        }
+        for(let i=1;i<=9;i++){ document.getElementById("stage"+i).checked = unlocks["stage"+i]||false; }
     }
 }
 
 async function saveUnlocks(){
     const s = document.getElementById("selectStudent").value;
     const unlocks = {};
-    for(let i=1;i<=5;i++){
-        unlocks["stage"+i] = document.getElementById("stage"+i).checked;
-    }
+    for(let i=1;i<=9;i++){ unlocks["stage"+i] = document.getElementById("stage"+i).checked; }
     await db.collection("students").doc(s).update(unlocks);
     alert("Unlocks saved for "+s);
 }
@@ -220,20 +237,16 @@ async function saveUnlocks(){
 async function studentLogin(){
     const name = document.getElementById("studentName").value.trim();
     const doc = await db.collection("students").doc(name).get();
-    if(!doc.exists){
-        alert("Username not found. Ask your teacher to create your account.");
-        return;
-    }
+    if(!doc.exists){ alert("Username not found. Ask your teacher to create your account."); return; }
     currentStudent = name;
     loadStudentStages();
 }
 
 async function loadStudentStages(){
-    const div=document.getElementById("stageButtons");
-    div.innerHTML="";
+    const div=document.getElementById("stageButtons"); div.innerHTML="";
     const doc = await db.collection("students").doc(currentStudent).get();
     const unlocks = doc.data();
-    for(let i=1;i<=5;i++){
+    for(let i=1;i<=9;i++){
         if(unlocks["stage"+i]){
             let btn=document.createElement("button");
             btn.innerText=stages["stage"+i].title;
@@ -245,19 +258,12 @@ async function loadStudentStages(){
 }
 
 // ---------- GAME LOGIC ----------
-function startStage(key){
-    score=0; currentQuestionIndex=0;
-    currentStage=stages[key];
-    show("game");
-    showQuestion();
-}
-
+function startStage(key){ score=0; currentQuestionIndex=0; currentStage=stages[key]; show("game"); showQuestion(); }
 function showQuestion(){
     let q=currentStage.questions[currentQuestionIndex];
     document.getElementById("stageTitle").innerText=currentStage.title;
     document.getElementById("question").innerText=q.q;
-    const div=document.getElementById("answers");
-    div.innerHTML="";
+    const div=document.getElementById("answers"); div.innerHTML="";
     q.a.forEach(a=>{
         let btn=document.createElement("button");
         btn.className="answer"; btn.innerText=a.text;
@@ -269,13 +275,8 @@ function showQuestion(){
 async function checkAnswer(correct){
     if(correct) score+=20;
     currentQuestionIndex++;
-    if(currentQuestionIndex<currentStage.questions.length){
-        showQuestion();
-    } else {
-        await saveScore();
-        alert("Topic Complete! Score: "+score);
-        loadStudentStages();
-    }
+    if(currentQuestionIndex<currentStage.questions.length){ showQuestion(); }
+    else { await saveScore(); alert("Topic Complete! Score: "+score); loadStudentStages(); }
 }
 
 async function saveScore(){
@@ -290,18 +291,14 @@ async function saveScore(){
 async function loadLeaderboard(){
     const snapshot = await db.collection("students").get();
     let html="<table><tr><th>Name</th><th>Score</th></tr>";
-    snapshot.forEach(doc=>{
-        html+="<tr><td>"+doc.id+"</td><td>"+(doc.data().score||0)+"</td></tr>";
-    });
+    snapshot.forEach(doc=>{ html+="<tr><td>"+doc.id+"</td><td>"+(doc.data().score||0)+"</td></tr>"; });
     html+="</table>";
     document.getElementById("board").innerHTML=html;
 }
 
 async function resetBoard(){
     const snapshot = await db.collection("students").get();
-    for(const doc of snapshot.docs){
-        await db.collection("students").doc(doc.id).update({score:0});
-    }
+    for(const doc of snapshot.docs){ await db.collection("students").doc(doc.id).update({score:0}); }
     loadLeaderboard();
 }
 </script>
