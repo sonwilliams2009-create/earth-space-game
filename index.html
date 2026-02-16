@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>ECHS KY Earth & Space Science - Full Course</title>
+<title>ECHS KY Earth & Space Science - Full Platform</title>
 
 <script type="module">
 /* =====================================================
@@ -22,7 +22,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* =====================================================
-   🔥 FIREBASE CONFIG (REPLACE)
+   🔥 FIREBASE CONFIG (REPLACE WITH YOURS)
 ===================================================== */
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
@@ -46,27 +46,44 @@ let currentQuestionIndex = 0;
 let score = 0;
 
 /* =====================================================
-   🎓 FULL YEAR KY UNIT STRUCTURE
-   (Questions stored separately)
+   🎓 FULL KY EARTH & SPACE SCIENCE TOPICS (20 UNITS)
 ===================================================== */
 const courseUnits = {
-  unit1: { title: "Unit 1: Universe & Big Bang" },
-  unit2: { title: "Unit 2: Stars & Galaxies" },
-  unit3: { title: "Unit 3: Solar System" },
-  unit4: { title: "Unit 4: Earth’s Interior" },
-  unit5: { title: "Unit 5: Plate Tectonics" },
-  unit6: { title: "Unit 6: Volcanoes & Mountains" },
-  unit7: { title: "Unit 7: Weather & Atmosphere" },
-  unit8: { title: "Unit 8: Climate Change" },
-  unit9: { title: "Unit 9: Oceans & Earth Systems" },
-  unit10:{ title: "Unit 10: Human Impact & Resources" }
+
+  unit1:  { title: "Unit 1: Big Bang & Origin of the Universe" },
+  unit2:  { title: "Unit 2: Stars, Galaxies, and Light Years" },
+  unit3:  { title: "Unit 3: Solar System & Planet Motion" },
+  unit4:  { title: "Unit 4: Gravity and Orbital Mechanics" },
+
+  unit5:  { title: "Unit 5: Earth’s Interior and Layers" },
+  unit6:  { title: "Unit 6: Plate Tectonics & Continental Drift" },
+  unit7:  { title: "Unit 7: Earthquakes and Fault Zones" },
+  unit8:  { title: "Unit 8: Volcanoes, Mountains, and Subduction" },
+
+  unit9:  { title: "Unit 9: Weather Systems and Air Pressure" },
+  unit10: { title: "Unit 10: Climate vs Weather & Climate Change" },
+  unit11: { title: "Unit 11: Oceans, Currents, and the Water Cycle" },
+
+  unit12: { title: "Unit 12: Earth’s Resources and Sustainability" },
+  unit13: { title: "Unit 13: Human Impact on Earth Systems" },
+
+  unit14: { title: "Unit 14: Moon Phases, Eclipses, and Tides" },
+  unit15: { title: "Unit 15: Space Exploration and Satellites" },
+
+  unit16: { title: "Unit 16: Meteorology and Severe Storms" },
+  unit17: { title: "Unit 17: Earth’s Magnetic Field and Auroras" },
+
+  unit18: { title: "Unit 18: Rocks, Minerals, and the Rock Cycle" },
+  unit19: { title: "Unit 19: Geologic Time Scale and Fossil Evidence" },
+
+  unit20: { title: "Unit 20: Final Review & Exam Prep" }
 };
 
 /* =====================================================
-   📚 QUESTION BANK (Expandable Forever)
-   Add hundreds of questions here safely
+   📚 QUESTION BANK (Add Unlimited Questions)
 ===================================================== */
 const questionBank = {
+
   unit1: [
     {
       q: "The Big Bang theory explains…",
@@ -76,41 +93,44 @@ const questionBank = {
       ]
     },
     {
-      q: "The universe is about…",
+      q: "The universe is approximately…",
       a: [
         { text: "13.8 billion years old", correct: true },
-        { text: "10,000 years old", correct: false }
-      ]
-    },
-    {
-      q: "Galaxies are moving away due to…",
-      a: [
-        { text: "Expansion of space", correct: true },
-        { text: "Earth’s gravity", correct: false }
+        { text: "100,000 years old", correct: false }
       ]
     }
   ],
 
-  unit2: [
+  unit5: [
     {
-      q: "Our Sun is classified as…",
+      q: "Earth’s magnetic field is produced by…",
       a: [
-        { text: "A main sequence star", correct: true },
-        { text: "A black hole", correct: false }
+        { text: "Movement in the outer core", correct: true },
+        { text: "The crust", correct: false }
       ]
     },
     {
-      q: "A supernova is…",
+      q: "The densest Earth layer is the…",
       a: [
-        { text: "A star explosion", correct: true },
-        { text: "A comet storm", correct: false }
+        { text: "Inner core", correct: true },
+        { text: "Mantle", correct: false }
+      ]
+    }
+  ],
+
+  unit14: [
+    {
+      q: "Moon phases happen because…",
+      a: [
+        { text: "The Moon orbits Earth", correct: true },
+        { text: "Earth blocks sunlight permanently", correct: false }
       ]
     }
   ]
 };
 
 /* =====================================================
-   🎲 SHUFFLE
+   🎲 SHUFFLE FUNCTION
 ===================================================== */
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -129,7 +149,7 @@ function show(id) {
 window.show = show;
 
 /* =====================================================
-   🎵 MUSIC
+   🎵 MENU MUSIC SYSTEM
 ===================================================== */
 let music = new Audio("menu-music.mp3");
 music.loop = true;
@@ -152,13 +172,14 @@ window.teacherLogin = function () {
   if (document.getElementById("teacherPass").value === "caves") {
     show("dashboard");
     loadLeaderboard();
+    buildTeacherUnitList();
   } else {
     alert("Wrong password");
   }
 };
 
 /* =====================================================
-   TEACHER ADD STUDENT
+   TEACHER ADD STUDENT (Teacher Chooses PIN)
 ===================================================== */
 window.addStudent = async function () {
 
@@ -166,7 +187,7 @@ window.addStudent = async function () {
   let pin = document.getElementById("newPin").value.trim();
 
   if (!name) return alert("Enter username");
-  if (!pin || pin.length !== 4) return alert("Enter 4-digit PIN");
+  if (!pin || pin.length !== 4) return alert("PIN must be 4 digits");
 
   let allowed = {};
   Object.keys(courseUnits).forEach(u => allowed[u] = false);
@@ -178,11 +199,30 @@ window.addStudent = async function () {
     completedUnits: {}
   });
 
-  alert("Student added successfully!");
+  alert("Student Added:\n" + name + "\nPIN: " + pin);
 };
 
 /* =====================================================
-   TEACHER ASSIGN UNITS
+   TEACHER UNIT CHECKBOX LIST AUTO BUILD
+===================================================== */
+function buildTeacherUnitList() {
+  let div = document.getElementById("unitAssignList");
+  div.innerHTML = "";
+
+  let i = 1;
+  for (let u in courseUnits) {
+    div.innerHTML += `
+      <label>
+        <input type="checkbox" id="unitCheck${i}">
+        ${courseUnits[u].title}
+      </label><br>
+    `;
+    i++;
+  }
+}
+
+/* =====================================================
+   TEACHER SAVE ASSIGNMENTS
 ===================================================== */
 window.saveAssignments = async function () {
 
@@ -191,19 +231,24 @@ window.saveAssignments = async function () {
 
   const ref = doc(db, "students", student);
   const snap = await getDoc(ref);
+
   if (!snap.exists()) return alert("Student not found!");
 
   let assigned = {};
-  Object.keys(courseUnits).forEach((u, i) => {
-    assigned[u] = document.getElementById("unitCheck" + (i + 1)).checked;
-  });
+  let i = 1;
+
+  for (let u in courseUnits) {
+    assigned[u] = document.getElementById("unitCheck" + i).checked;
+    i++;
+  }
 
   await updateDoc(ref, { allowedUnits: assigned });
-  alert("Assignments saved!");
+
+  alert("Assignments Saved!");
 };
 
 /* =====================================================
-   STUDENT LOGIN
+   STUDENT LOGIN (Username + PIN)
 ===================================================== */
 window.studentLogin = async function () {
 
@@ -217,12 +262,12 @@ window.studentLogin = async function () {
     show("studentMenu");
     loadStudentUnits();
   } else {
-    alert("Login failed.");
+    alert("Login failed!");
   }
 };
 
 /* =====================================================
-   LOAD STUDENT UNITS
+   LOAD STUDENT ALLOWED UNITS
 ===================================================== */
 async function loadStudentUnits() {
 
@@ -286,7 +331,7 @@ function showQuestion() {
 }
 
 /* =====================================================
-   ANSWER CHECK
+   CHECK ANSWERS + SAVE SCORE
 ===================================================== */
 async function checkAnswer(correct) {
 
@@ -319,8 +364,8 @@ async function loadLeaderboard() {
   let div = document.getElementById("board");
   div.innerHTML = "";
 
-  const q = query(collection(db, "students"), orderBy("score", "desc"));
-  const snaps = await getDocs(q);
+  const qSnap = query(collection(db, "students"), orderBy("score", "desc"));
+  const snaps = await getDocs(qSnap);
 
   snaps.forEach(docSnap => {
     div.innerHTML += "🏆 " + docSnap.id + " : " +
@@ -338,43 +383,55 @@ body {
   color: white;
   text-align: center;
 }
-.screen { display: none; padding: 30px; }
-#login { display: block; }
+.screen {
+  display: none;
+  padding: 30px;
+}
+#login {
+  display: block;
+}
 button, input {
   padding: 10px;
   margin: 10px;
   border-radius: 8px;
   border: none;
 }
-button { background: orange; cursor: pointer; }
-button:hover { background: white; color: black; }
+button {
+  background: orange;
+  cursor: pointer;
+}
+button:hover {
+  background: white;
+  color: black;
+}
 </style>
 </head>
 
 <body>
 
 <h1>🏫 ECHS KY Earth & Space Science</h1>
+
 <button id="musicBtn" onclick="toggleMusic()">🔇 Music OFF</button>
 
-<!-- LOGIN -->
+<!-- LOGIN SCREEN -->
 <div id="login" class="screen">
   <h2>Student Login</h2>
   <input id="studentName" placeholder="Username">
-  <input id="studentPin" placeholder="PIN">
+  <input id="studentPin" placeholder="4-digit PIN">
   <button onclick="studentLogin()">Login</button>
 
   <h2>Teacher Login</h2>
-  <input id="teacherPass" type="password">
+  <input id="teacherPass" type="password" placeholder="Password">
   <button onclick="teacherLogin()">Login</button>
 </div>
 
-<!-- DASHBOARD -->
+<!-- TEACHER DASHBOARD -->
 <div id="dashboard" class="screen">
   <h2>Teacher Dashboard</h2>
 
   <h3>Add Student</h3>
   <input id="newStudent" placeholder="Username">
-  <input id="newPin" placeholder="PIN">
+  <input id="newPin" placeholder="PIN (4 digits)">
   <button onclick="addStudent()">Add Student</button>
 
   <h3>Leaderboard</h3>
@@ -383,16 +440,7 @@ button:hover { background: white; color: black; }
   <h3>Assign Units</h3>
   <input id="assignStudent" placeholder="Student Username"><br>
 
-  <label><input type="checkbox" id="unitCheck1"> Unit 1</label><br>
-  <label><input type="checkbox" id="unitCheck2"> Unit 2</label><br>
-  <label><input type="checkbox" id="unitCheck3"> Unit 3</label><br>
-  <label><input type="checkbox" id="unitCheck4"> Unit 4</label><br>
-  <label><input type="checkbox" id="unitCheck5"> Unit 5</label><br>
-  <label><input type="checkbox" id="unitCheck6"> Unit 6</label><br>
-  <label><input type="checkbox" id="unitCheck7"> Unit 7</label><br>
-  <label><input type="checkbox" id="unitCheck8"> Unit 8</label><br>
-  <label><input type="checkbox" id="unitCheck9"> Unit 9</label><br>
-  <label><input type="checkbox" id="unitCheck10"> Unit 10</label><br>
+  <div id="unitAssignList"></div>
 
   <button onclick="saveAssignments()">Save Assignments</button>
 </div>
@@ -403,7 +451,7 @@ button:hover { background: white; color: black; }
   <div id="unitButtons"></div>
 </div>
 
-<!-- GAME -->
+<!-- GAME SCREEN -->
 <div id="game" class="screen">
   <h2 id="unitTitle"></h2>
   <p id="question"></p>
