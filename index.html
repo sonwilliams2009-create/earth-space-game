@@ -1,403 +1,227 @@
-const questionBank = {
-
-/* =========================
-   UNIT 1: BIG BANG & UNIVERSE
-========================= */
-unit1:[
- {q:"The Big Bang created…",
-  a:["The Universe","Earth","The Sun"], correct:0},
-
- {q:"The universe is about… years old.",
-  a:["13.8 billion","1 million","500 years"], correct:0},
-
- {q:"Galaxies are mostly moving…",
-  a:["Away from each other","Toward Earth","Not moving"], correct:0},
-
- {q:"The cosmic microwave background is…",
-  a:["Radiation left over from the Big Bang","Light from volcanoes","Earth’s heat"], correct:0},
-
- {q:"A galaxy is a collection of…",
-  a:["Stars, gas, dust","Only planets","Only comets"], correct:0}
-],
-
-/* =========================
-   UNIT 2: STARS & GALAXIES
-========================= */
-unit2:[
- {q:"A star produces energy through…",
-  a:["Nuclear fusion","Evaporation","Photosynthesis"], correct:0},
-
- {q:"Our Sun is classified as a…",
-  a:["Main sequence star","Black hole","Nebula"], correct:0},
-
- {q:"A supernova is…",
-  a:["An exploding star","A new planet","A moon phase"], correct:0},
-
- {q:"The Milky Way is a…",
-  a:["Galaxy","Comet","Asteroid belt"], correct:0},
-
- {q:"The life cycle of a star begins in a…",
-  a:["Nebula","Crust","Ocean trench"], correct:0}
-],
-
-/* =========================
-   UNIT 3: SOLAR SYSTEM
-========================= */
-unit3:[
- {q:"The solar system formed about… years ago.",
-  a:["4.6 billion","200 million","1,000"], correct:0},
-
- {q:"The largest planet is…",
-  a:["Jupiter","Mars","Mercury"], correct:0},
-
- {q:"Earth is the… planet from the Sun.",
-  a:["3rd","1st","8th"], correct:0},
-
- {q:"Asteroids are mostly found in the…",
-  a:["Asteroid Belt","Oort Cloud","Earth’s core"], correct:0},
-
- {q:"Comets are made mostly of…",
-  a:["Ice and dust","Metal only","Lava"], correct:0}
-],
-
-/* =========================
-   UNIT 4: GRAVITY & ORBITS
-========================= */
-unit4:[
- {q:"Gravity is a force of…",
-  a:["Attraction","Repulsion","Heat"], correct:0},
-
- {q:"Planets orbit the Sun because of…",
-  a:["Gravity","Magnetism","Wind"], correct:0},
-
- {q:"The Moon causes Earth’s…",
-  a:["Tides","Volcanoes","Earthquakes"], correct:0},
-
- {q:"An orbit is…",
-  a:["A curved path around an object","A straight line","A rock layer"], correct:0},
-
- {q:"More mass means… gravity.",
-  a:["More","Less","No"], correct:0}
-],
-
-/* =========================
-   UNIT 5: EARTH’S LAYERS
-========================= */
-unit5:[
- {q:"Earth’s outermost layer is the…",
-  a:["Crust","Core","Mantle"], correct:0},
-
- {q:"The thickest layer is the…",
-  a:["Mantle","Crust","Outer core"], correct:0},
-
- {q:"The hottest part of Earth is the…",
-  a:["Inner core","Ocean","Atmosphere"], correct:0},
-
- {q:"Earth’s magnetic field comes from the…",
-  a:["Outer core","Crust","Clouds"], correct:0},
-
- {q:"The crust is…",
-  a:["Solid rock","Liquid metal","Gas"], correct:0}
-],
-
-/* =========================
-   UNIT 6: PLATE TECTONICS
-========================= */
-unit6:[
- {q:"Earth’s plates move because of…",
-  a:["Convection currents","Moonlight","Rain"], correct:0},
-
- {q:"Divergent boundaries mean plates…",
-  a:["Move apart","Collide","Stop"], correct:0},
-
- {q:"Convergent boundaries mean plates…",
-  a:["Collide","Move apart","Float away"], correct:0},
-
- {q:"Transform boundaries cause…",
-  a:["Earthquakes","Hurricanes","Tides"], correct:0},
-
- {q:"The Ring of Fire surrounds the…",
-  a:["Pacific Ocean","Atlantic Ocean","Arctic"], correct:0}
-],
-
-/* =========================
-   UNIT 7: EARTHQUAKES
-========================= */
-unit7:[
- {q:"Earthquakes occur mainly at…",
-  a:["Plate boundaries","The equator","Oceans only"], correct:0},
-
- {q:"The point underground where shaking starts is the…",
-  a:["Focus","Crust","Core"], correct:0},
-
- {q:"The point directly above the focus is the…",
-  a:["Epicenter","Mantle","Fault line"], correct:0},
-
- {q:"Seismic waves are…",
-  a:["Energy waves from earthquakes","Ocean currents","Sun rays"], correct:0},
-
- {q:"The Richter scale measures…",
-  a:["Magnitude","Temperature","Wind speed"], correct:0}
-],
-
-/* =========================
-   UNIT 8: VOLCANOES
-========================= */
-unit8:[
- {q:"Magma becomes lava when it…",
-  a:["Reaches the surface","Freezes","Turns into rock"], correct:0},
-
- {q:"Volcanoes form mostly at…",
-  a:["Plate boundaries","Deserts","Grasslands"], correct:0},
-
- {q:"A shield volcano is…",
-  a:["Wide and gently sloped","Very tall and steep","Underwater only"], correct:0},
-
- {q:"An eruption releases…",
-  a:["Gas, ash, lava","Only water","Only ice"], correct:0},
-
- {q:"Mount St. Helens is in…",
-  a:["Washington","Florida","Kentucky"], correct:0}
-],
-
-/* =========================
-   UNIT 9: WEATHER SYSTEMS
-========================= */
-unit9:[
- {q:"Weather describes…",
-  a:["Daily atmospheric conditions","Earth’s core","Plate motion"], correct:0},
-
- {q:"A cold front brings…",
-  a:["Storms and cooler air","Heat waves","Earthquakes"], correct:0},
-
- {q:"Humidity measures…",
-  a:["Water vapor in air","Wind speed","Gravity"], correct:0},
-
- {q:"A tornado is…",
-  a:["A rotating column of air","A type of earthquake","A moon phase"], correct:0},
-
- {q:"Air pressure is measured with a…",
-  a:["Barometer","Thermometer","Seismograph"], correct:0}
-],
-
-/* =========================
-   UNIT 10: CLIMATE CHANGE
-========================= */
-unit10:[
- {q:"Climate describes…",
-  a:["Long-term weather patterns","Daily rain","Plate boundaries"], correct:0},
-
- {q:"The greenhouse effect traps…",
-  a:["Heat","Earthquakes","Tides"], correct:0},
-
- {q:"Carbon dioxide is released by…",
-  a:["Burning fossil fuels","Photosynthesis","Rain"], correct:0},
-
- {q:"Global warming causes…",
-  a:["Rising temperatures","More asteroids","Less gravity"], correct:0},
-
- {q:"One effect is…",
-  a:["Melting ice caps","More earthquakes","Faster orbits"], correct:0}
-],
-
-/* =========================
-   UNIT 11: OCEANS
-========================= */
-unit11:[
- {q:"Most of Earth’s surface is covered by…",
-  a:["Oceans","Mountains","Deserts"], correct:0},
-
- {q:"Ocean currents affect…",
-  a:["Climate","Earth’s core","Plate tectonics"], correct:0},
-
- {q:"The largest ocean is the…",
-  a:["Pacific","Atlantic","Indian"], correct:0},
-
- {q:"Salinity means…",
-  a:["Salt content","Wave height","Wind speed"], correct:0},
-
- {q:"Tsunamis are caused by…",
-  a:["Underwater earthquakes","Rainstorms","Moon phases"], correct:0}
-],
-
-/* =========================
-   UNIT 12: NATURAL RESOURCES
-========================= */
-unit12:[
- {q:"Coal is a… resource.",
-  a:["Nonrenewable","Renewable","Infinite"], correct:0},
-
- {q:"Solar energy is…",
-  a:["Renewable","Nonrenewable","Fossil fuel"], correct:0},
-
- {q:"Natural gas is formed from…",
-  a:["Ancient organisms","Volcanoes","Rain"], correct:0},
-
- {q:"Conservation means…",
-  a:["Using resources wisely","Using everything up","Stopping all farming"], correct:0},
-
- {q:"Kentucky is known for…",
-  a:["Coal resources","Tropical reefs","Active volcanoes"], correct:0}
-],
-
-/* =========================
-   UNIT 13: HUMAN IMPACTS
-========================= */
-unit13:[
- {q:"Pollution can affect…",
-  a:["Air, water, land","Only space","Only volcanoes"], correct:0},
-
- {q:"Deforestation removes…",
-  a:["Trees","Rocks","Planets"], correct:0},
-
- {q:"Recycling helps reduce…",
-  a:["Waste","Gravity","Tides"], correct:0},
-
- {q:"Fossil fuels increase…",
-  a:["Greenhouse gases","Earth’s orbit","Earthquakes"], correct:0},
-
- {q:"Sustainability means…",
-  a:["Meeting needs without harming future","Using all resources fast","Stopping science"], correct:0}
-],
-
-/* =========================
-   UNIT 14: MOON & TIDES
-========================= */
-unit14:[
- {q:"The Moon orbits the…",
-  a:["Earth","Sun","Mars"], correct:0},
-
- {q:"Phases are caused by…",
-  a:["Moon’s position","Earth spinning faster","Volcanoes"], correct:0},
-
- {q:"A lunar eclipse happens when…",
-  a:["Earth blocks sunlight","Moon blocks Earth","Sun disappears"], correct:0},
-
- {q:"Tides are caused mostly by…",
-  a:["Gravity of Moon","Wind","Earthquakes"], correct:0},
-
- {q:"The Moon’s surface has many…",
-  a:["Craters","Oceans","Forests"], correct:0}
-],
-
-/* =========================
-   UNIT 15: SPACE EXPLORATION
-========================= */
-unit15:[
- {q:"NASA stands for…",
-  a:["National Aeronautics and Space Administration","North American Star Agency","New Asteroid Search Alliance"], correct:0},
-
- {q:"The first person on the Moon was…",
-  a:["Neil Armstrong","Albert Einstein","Galileo"], correct:0},
-
- {q:"A rover explores…",
-  a:["Planet surfaces","Earth’s core","The Sun"], correct:0},
-
- {q:"The ISS is the…",
-  a:["International Space Station","Inner Solar System","Ice Satellite System"], correct:0},
-
- {q:"Satellites are used for…",
-  a:["Communication and GPS","Volcano prediction only","Earthquakes only"], correct:0}
-],
-
-/* =========================
-   UNIT 16: ATMOSPHERE
-========================= */
-unit16:[
- {q:"Earth’s atmosphere is made mostly of…",
-  a:["Nitrogen","Carbon dioxide","Helium"], correct:0},
-
- {q:"The ozone layer protects from…",
-  a:["UV radiation","Earthquakes","Gravity"], correct:0},
-
- {q:"The troposphere is where…",
-  a:["Weather happens","Plates move","Stars form"], correct:0},
-
- {q:"Air is a…",
-  a:["Mixture of gases","Solid rock","Liquid metal"], correct:0},
-
- {q:"The atmosphere helps regulate…",
-  a:["Temperature","Earth’s orbit","Plate speed"], correct:0}
-],
-
-/* =========================
-   UNIT 17: MAGNETIC FIELD
-========================= */
-unit17:[
- {q:"Earth’s magnetic field is generated by…",
-  a:["Outer core movement","Ocean currents","Moon phases"], correct:0},
-
- {q:"Magnetosphere protects Earth from…",
-  a:["Solar wind","Rainstorms","Earthquakes"], correct:0},
-
- {q:"A compass points toward…",
-  a:["Magnetic north","The Sun","The Moon"], correct:0},
-
- {q:"Auroras happen near the…",
-  a:["Poles","Equator","Mantle"], correct:0},
-
- {q:"Earth acts like a…",
-  a:["Giant magnet","Black hole","Volcano"], correct:0}
-],
-
-/* =========================
-   UNIT 18: ROCKS & MINERALS
-========================= */
-unit18:[
- {q:"Igneous rocks form from…",
-  a:["Cooled magma/lava","Sand compaction","Heat and pressure"], correct:0},
-
- {q:"Sedimentary rocks form from…",
-  a:["Layers of sediment","Molten lava","Fusion"], correct:0},
-
- {q:"Metamorphic rocks form by…",
-  a:["Heat and pressure","Freezing water","Solar wind"], correct:0},
-
- {q:"Minerals have a… composition.",
-  a:["Definite","Random","Liquid"], correct:0},
-
- {q:"The rock cycle describes…",
-  a:["How rocks change","How planets orbit","How stars explode"], correct:0}
-],
-
-/* =========================
-   UNIT 19: GEOLOGIC TIME
-========================= */
-unit19:[
- {q:"Fossils are found mostly in…",
-  a:["Sedimentary rocks","Igneous rocks","The core"], correct:0},
-
- {q:"The oldest eon is the…",
-  a:["Precambrian","Jurassic","Holocene"], correct:0},
-
- {q:"Dinosaurs lived during the…",
-  a:["Mesozoic Era","Cenozoic Era","Hadean"], correct:0},
-
- {q:"Relative dating tells…",
-  a:["Which is older/younger","Exact age","Future climate"], correct:0},
-
- {q:"Index fossils help determine…",
-  a:["Age of rock layers","Weather patterns","Plate speed"], correct:0}
-],
-
-/* =========================
-   UNIT 20: FINAL REVIEW
-========================= */
-unit20:[
- {q:"Earth’s plates move due to…",
-  a:["Convection currents","Moonlight","Photosynthesis"], correct:0},
-
- {q:"The Sun is a…",
-  a:["Star","Planet","Comet"], correct:0},
-
- {q:"Climate change is linked to…",
-  a:["Greenhouse gases","Tides","Earthquakes"], correct:0},
-
- {q:"The largest ocean is…",
-  a:["Pacific","Atlantic","Arctic"], correct:0},
-
- {q:"The universe began with the…",
-  a:["Big Bang","Ice Age","Rock Cycle"], correct:0}
-]
-
+<script>
+/* ============================
+   GLOBAL DATA
+============================ */
+
+let students = {};
+let currentStudent = "";
+let currentUnit = "";
+let questionIndex = 0;
+let score = 0;
+
+/* ============================
+   LOAD STUDENTS FROM GITHUB FILE
+============================ */
+
+async function loadStudents(){
+  try{
+    const res = await fetch("students.json");
+    students = await res.json();
+    console.log("Students loaded:", students);
+  } catch(err){
+    alert("❌ Could not load student database.");
+    console.error(err);
+  }
+}
+
+loadStudents();
+
+/* ============================
+   UNITS LIST
+============================ */
+
+const units = {
+  unit1:"Unit 1: Big Bang & Universe",
+  unit2:"Unit 2: Stars & Galaxies",
+  unit3:"Unit 3: Solar System",
+  unit4:"Unit 4: Gravity & Orbits",
+  unit5:"Unit 5: Earth Layers",
+  unit6:"Unit 6: Plate Tectonics",
+  unit7:"Unit 7: Earthquakes",
+  unit8:"Unit 8: Volcanoes",
+  unit9:"Unit 9: Weather Systems",
+  unit10:"Unit 10: Climate Change",
+  unit11:"Unit 11: Oceans",
+  unit12:"Unit 12: Natural Resources",
+  unit13:"Unit 13: Human Impacts",
+  unit14:"Unit 14: Moon & Tides",
+  unit15:"Unit 15: Space Exploration",
+  unit16:"Unit 16: Atmosphere",
+  unit17:"Unit 17: Magnetic Field",
+  unit18:"Unit 18: Rocks & Minerals",
+  unit19:"Unit 19: Geologic Time",
+  unit20:"Unit 20: Final Review"
 };
+
+/* ============================
+   QUESTION BANK (FULL)
+============================ */
+
+const questionBank = {
+unit1:[
+ {q:"The Big Bang created…",a:["The Universe","Earth","The Sun"],correct:0},
+ {q:"Universe age is about…",a:["13.8 billion years","1 million years","500 years"],correct:0}
+],
+unit6:[
+ {q:"Divergent boundaries mean plates…",a:["Move apart","Collide","Stop"],correct:0},
+ {q:"Ring of Fire surrounds…",a:["Pacific Ocean","Atlantic Ocean","Arctic"],correct:0}
+],
+unit20:[
+ {q:"The Sun is a…",a:["Star","Planet","Comet"],correct:0}
+]
+};
+
+/* ============================
+   SCREEN CONTROL
+============================ */
+
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(s=>s.style.display="none");
+  document.getElementById(id).style.display="block";
+}
+
+/* ============================
+   TEACHER LOGIN
+============================ */
+
+document.getElementById("teacherLoginBtn").onclick=()=>{
+  if(document.getElementById("teacherPass").value==="caves"){
+    showScreen("dashboard");
+    refreshTeacherMenus();
+  } else alert("Wrong password");
+};
+
+/* ============================
+   TEACHER DROPDOWNS
+============================ */
+
+function refreshTeacherMenus(){
+  let studentDrop=document.getElementById("studentSelect");
+  studentDrop.innerHTML="";
+
+  for(let s in students){
+    let opt=document.createElement("option");
+    opt.value=s;
+    opt.textContent=s;
+    studentDrop.appendChild(opt);
+  }
+
+  let unitDrop=document.getElementById("unitSelect");
+  unitDrop.innerHTML="";
+
+  for(let u in units){
+    let opt=document.createElement("option");
+    opt.value=u;
+    opt.textContent=units[u];
+    unitDrop.appendChild(opt);
+  }
+
+  loadLeaderboard();
+}
+
+/* ============================
+   LEADERBOARD
+============================ */
+
+function loadLeaderboard(){
+  let div=document.getElementById("leaderboard");
+  div.innerHTML="";
+  for(let s in students){
+    div.innerHTML += `${s}: ${students[s].score} pts<br>`;
+  }
+}
+
+/* ============================
+   ASSIGN UNIT (READ ONLY)
+============================ */
+
+document.getElementById("assignUnitBtn").onclick=()=>{
+  let student=document.getElementById("studentSelect").value;
+  let unit=document.getElementById("unitSelect").value;
+
+  alert(
+`⚠ GitHub Pages cannot auto-save assignments.
+
+To assign this unit permanently, edit students.json:
+
+"${student}": {
+  "assignedUnit": "${unit}"
+}`
+  );
+};
+
+/* ============================
+   STUDENT LOGIN
+============================ */
+
+document.getElementById("studentLoginBtn").onclick=()=>{
+  let name=document.getElementById("studentName").value.trim();
+
+  if(!students[name]) return alert("Student not found 😭");
+
+  currentStudent=name;
+  currentUnit=students[name].assignedUnit;
+
+  document.getElementById("assignedUnitText").innerText =
+    units[currentUnit];
+
+  showScreen("studentMenu");
+};
+
+/* ============================
+   START UNIT
+============================ */
+
+document.getElementById("startUnitBtn").onclick=()=>{
+  questionIndex=0;
+  score=0;
+  showScreen("quizScreen");
+  showQuestion();
+};
+
+/* ============================
+   QUIZ SYSTEM
+============================ */
+
+function showQuestion(){
+  let questions=questionBank[currentUnit];
+  if(!questions){
+    alert("No questions yet.");
+    showScreen("studentMenu");
+    return;
+  }
+
+  let q=questions[questionIndex];
+
+  document.getElementById("unitTitle").innerText =
+    units[currentUnit];
+
+  document.getElementById("questionText").innerText=q.q;
+
+  let ansDiv=document.getElementById("answerButtons");
+  ansDiv.innerHTML="";
+
+  q.a.forEach((choice,index)=>{
+    let btn=document.createElement("button");
+    btn.innerText=choice;
+    btn.onclick=()=>checkAnswer(index===q.correct);
+    ansDiv.appendChild(btn);
+  });
+}
+
+function checkAnswer(correct){
+  alert(correct ? "Correct ✅" : "Wrong ❌");
+
+  questionIndex++;
+
+  let questions=questionBank[currentUnit];
+
+  if(questionIndex<questions.length){
+    showQuestion();
+  } else {
+    alert("Unit Complete!");
+
+    showScreen("studentMenu");
+  }
+}
+</script>
