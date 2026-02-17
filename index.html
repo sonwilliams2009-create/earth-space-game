@@ -1,268 +1,29 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>🌌 ECHS KY - Earth & Space Science 🌍</title>
-<style>
-body{
-  margin:0;
-  font-family:'Comic Sans MS', cursive, sans-serif;
-  background:linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
-  color:white;
-  text-align:center;
+// Load students from localStorage
+let students = JSON.parse(localStorage.getItem("students")) || {};
+
+// Save students to localStorage
+function saveStudents(){
+  localStorage.setItem("students", JSON.stringify(students));
 }
-.screen{display:none;padding:30px;} 
-#login{display:block;}
-button,input,select{
-  padding:10px 15px;
-  margin:10px;
-  border-radius:12px;
-  border:none;
-  font-size:16px;
-  transition:0.2s;
+
+// When adding a student:
+document.getElementById("addStudentBtn").onclick=function(){
+  const name=document.getElementById("newStudentName").value.trim();
+  if(!name) return alert("Enter a name!");
+  if(students[name]) return alert("Student already exists!");
+  let allowedUnits={}, scores={total:0};
+  for(let term in terms){ allowedUnits[term]={}; terms[term].forEach(u=> allowedUnits[term][u]=true);}
+  students[name]={allowedUnits,scores};
+  saveStudents(); // save immediately
+  document.getElementById("newStudentName").value="";
+  populateStudentDropdown(); loadLeaderboard(); alert(`Student ${name} added! 🎉`);
 }
-button{
-  background:linear-gradient(to right, #ff416c, #ff4b2b);
-  cursor:pointer;
-  font-weight:bold;
+
+// When logging in:
+document.getElementById("studentLoginBtn").onclick=function(){
+  students = JSON.parse(localStorage.getItem("students")) || {}; // refresh
+  const name=document.getElementById("studentName").value.trim();
+  if(!name) return alert("Enter username!");
+  if(!students[name]) return alert("Student not found 😭");
+  currentStudent=name; show("studentMenu"); buildTermButtons();
 }
-button:hover{
-  transform:scale(1.1);
-  background:linear-gradient(to right, #fddb92, #d1fdff);
-  color:black;
-}
-h1{
-  background:#111;
-  color:#00e5ff;
-  padding:15px;
-  font-size:26px;
-  border-bottom:4px solid orange;
-}
-#credits{
-  font-size:12px;
-  color:#ffcc00;
-  margin-bottom:10px;
-}
-</style>
-</head>
-<body>
-
-<div id="credits">Lead Dev: Gabriel | Code Fixes: ChatGPT</div>
-
-<h1>🌌 ECHS KY – Earth & Space Science 🌍</h1>
-
-<!-- MUSIC -->
-<button id="musicBtn">🔇 Music OFF</button>
-
-<!-- LOGIN -->
-<div id="login" class="screen">
-<h2>Student Login 😎</h2>
-<input id="studentName" placeholder="Enter your username">
-<button id="studentLoginBtn">Let's gooo 🚀</button>
-
-<h2>Teacher Login 👩‍🏫</h2>
-<input id="teacherPass" type="password" placeholder="Password">
-<button id="teacherLoginBtn">Enter Dashboard 🖥️</button>
-</div>
-
-<!-- TEACHER DASHBOARD -->
-<div id="dashboard" class="screen">
-<h2>Teacher Dashboard 🎓</h2>
-
-<h3>Add New Student ➕</h3>
-<input id="newStudentName" placeholder="Student Name">
-<button id="addStudentBtn">Add Student</button>
-
-<h3>Assign Full Units to Student 📚</h3>
-<select id="selectStudentDropdown"></select>
-<button id="assignAllBtn">Assign All Units 💪</button>
-
-<h3>Leaderboard 🏆</h3>
-<div id="board"></div>
-<button onclick="show('login')">Logout 🔙</button>
-</div>
-
-<!-- STUDENT MENU -->
-<div id="studentMenu" class="screen">
-<h2>Your Terms & Units 🌈</h2>
-<div id="termButtons"></div>
-<button onclick="show('login')">Logout 🔙</button>
-</div>
-
-<!-- UNIT QUIZ -->
-<div id="game" class="screen">
-<h2 id="unitTitle">Unit</h2>
-<p id="question"></p>
-<div id="answers"></div>
-</div>
-
-<script>
-window.onload = function() {
-  /* ================= GLOBAL ================= */
-  let currentStudent="", currentTerm="", currentUnitKey="", currentUnitData=null, currentQuestionIndex=0, score=0;
-  
-  let students={};
-  
-  const courseUnits={
-    unit1:"Unit 1: Big Bang & Universe",
-    unit2:"Unit 2: Stars & Galaxies",
-    unit3:"Unit 3: Solar System & Planet Motion",
-    unit4:"Unit 4: Gravity & Orbital Mechanics",
-    unit5:"Unit 5: Earth Interior & Layers",
-    unit6:"Unit 6: Plate Tectonics",
-    unit7:"Unit 7: Earthquakes",
-    unit8:"Unit 8: Volcanoes & Mountains",
-    unit9:"Unit 9: Weather Systems",
-    unit10:"Unit 10: Climate Change",
-    unit11:"Unit 11: Oceans & Currents",
-    unit12:"Unit 12: Earth Resources",
-    unit13:"Unit 13: Human Impact",
-    unit14:"Unit 14: Moon & Tides",
-    unit15:"Unit 15: Space Exploration",
-    unit16:"Unit 16: Meteorology",
-    unit17:"Unit 17: Magnetic Field & Auroras",
-    unit18:"Unit 18: Rocks & Minerals",
-    unit19:"Unit 19: Geologic Time & Fossils",
-    unit20:"Unit 20: Final Review"
-  };
-  
-  const terms = {
-    term1:["unit1","unit2","unit3","unit4","unit5"],
-    term2:["unit6","unit7","unit8","unit9","unit10"],
-    term3:["unit11","unit12","unit13","unit14","unit15"],
-    term4:["unit16","unit17","unit18","unit19","unit20"]
-  };
-  
-  /* ================= SAMPLE QUESTIONS ================= */
-  const questionBank={
-    unit1:[
-      {q:"The Big Bang explains…",a:[{text:"Origin of universe",correct:true},{text:"Oceans",correct:false},{text:"Earth",correct:false}]},
-      {q:"The universe is approximately…",a:[{text:"13.8 billion years",correct:true},{text:"1 million years",correct:false},{text:"4.5 billion years",correct:false}]},
-      {q:"Galaxies are moving…",a:[{text:"Away from each other",correct:true},{text:"Toward each other",correct:false},{text:"Stationary",correct:false}]}
-    ],
-    unit2:[
-      {q:"A light year measures…",a:[{text:"Distance",correct:true},{text:"Time",correct:false},{text:"Brightness",correct:false}]},
-      {q:"The Sun is a…",a:[{text:"Star",correct:true},{text:"Planet",correct:false},{text:"Moon",correct:false}]},
-      {q:"Our galaxy is called…",a:[{text:"Milky Way",correct:true},{text:"Andromeda",correct:false},{text:"Triangulum",correct:false}]}
-    ],
-    // ... continue adding units with 3–5 questions each
-  };
-  
-  /* ================= MUSIC ================= */
-  let music = new Audio("menu-music.mp3"); music.loop=true; music.volume=0.3;
-  document.getElementById("musicBtn").onclick=function(){
-    if(music.paused){ music.play().catch(()=>alert("Tap to allow music")); this.innerText="🔊 Music ON"; }
-    else{ music.pause(); this.innerText="🔇 Music OFF"; }
-  };
-  
-  /* ================= FUNCTIONS ================= */
-  function show(id){ document.querySelectorAll(".screen").forEach(s=>s.style.display="none"); document.getElementById(id).style.display="block"; }
-  
-  function populateStudentDropdown(){
-    const select=document.getElementById("selectStudentDropdown"); select.innerHTML="";
-    for(let s in students) select.innerHTML+=`<option value="${s}">${s}</option>`;
-  }
-  
-  function loadLeaderboard(){
-    const div=document.getElementById("board"); div.innerHTML="";
-    for(let s in students) div.innerHTML+=`${s} : ${students[s].scores.total || 0} pts<br>`;
-  }
-  
-  function buildTermButtons(){
-    const div=document.getElementById("termButtons"); div.innerHTML="";
-    const allowed=students[currentStudent].allowedUnits;
-    for(let term in allowed){
-      let btn=document.createElement("button");
-      btn.innerText=`${term.toUpperCase()} 🟢`;
-      btn.onclick=()=>showUnitButtons(term);
-      div.appendChild(btn);
-    }
-  }
-  
-  function showUnitButtons(term){
-    currentTerm=term;
-    const div=document.getElementById("termButtons"); div.innerHTML="";
-    const allowed=students[currentStudent].allowedUnits[term];
-    for(let u in allowed){
-      if(allowed[u]){
-        let btn=document.createElement("button");
-        btn.innerText=courseUnits[u];
-        btn.onclick=()=>startUnit(u);
-        div.appendChild(btn);
-      }
-    }
-    div.innerHTML+="<br><button onclick='buildTermButtons()'>⬅️ Back to Terms</button>";
-  }
-  
-  function startUnit(uKey){
-    currentUnitKey=uKey;
-    currentUnitData=JSON.parse(JSON.stringify(questionBank[uKey] || []));
-    currentQuestionIndex=0; score=0;
-    show("game"); showQuestion();
-  }
-  
-  function showQuestion(){
-    if(!currentUnitData || currentQuestionIndex>=currentUnitData.length){ finishUnit(); return; }
-    let q=currentUnitData[currentQuestionIndex];
-    document.getElementById("unitTitle").innerText=courseUnits[currentUnitKey];
-    document.getElementById("question").innerText=q.q;
-    const div=document.getElementById("answers"); div.innerHTML="";
-    q.a.forEach(a=>{
-      let btn=document.createElement("button");
-      btn.innerText=a.text;
-      btn.onclick=()=>checkAnswer(a.correct);
-      div.appendChild(btn);
-    });
-  }
-  
-  function checkAnswer(correct){
-    if(correct) score+=10;
-    currentQuestionIndex++;
-    showQuestion();
-  }
-  
-  function finishUnit(){
-    if(!students[currentStudent].scores[currentTerm]) students[currentStudent].scores[currentTerm]=0;
-    if(!students[currentStudent].scores.total) students[currentStudent].scores.total=0;
-    students[currentStudent].scores[currentTerm]+=score;
-    students[currentStudent].scores.total+=score;
-    alert(`Unit Complete! Score: ${score} 💯`);
-    show("studentMenu"); buildTermButtons(); loadLeaderboard();
-  }
-  
-  /* ================= EVENT LISTENERS ================= */
-  document.getElementById("teacherLoginBtn").onclick=function(){
-    if(document.getElementById("teacherPass").value==="caves"){ 
-      show("dashboard"); populateStudentDropdown(); loadLeaderboard(); 
-    } else alert("Wrong password 😭");
-  };
-  
-  document.getElementById("addStudentBtn").onclick=function(){
-    const name=document.getElementById("newStudentName").value.trim();
-    if(!name) return alert("Enter a name!");
-    if(students[name]) return alert("Student already exists!");
-    let allowedUnits={}, scores={total:0};
-    for(let term in terms){ allowedUnits[term]={}; terms[term].forEach(u=> allowedUnits[term][u]=true);}
-    students[name]={allowedUnits,scores};
-    document.getElementById("newStudentName").value="";
-    populateStudentDropdown(); loadLeaderboard(); alert(`Student ${name} added! 🎉`);
-  };
-  
-  document.getElementById("assignAllBtn").onclick=function(){
-    const student=document.getElementById("selectStudentDropdown").value;
-    if(!student) return alert("Select a student!");
-    for(let term in terms) terms[term].forEach(u=> students[student].allowedUnits[term][u]=true);
-    alert(`${student} now has all units assigned! ✅`);
-    loadLeaderboard();
-  };
-  
-  document.getElementById("studentLoginBtn").onclick=function(){
-    const name=document.getElementById("studentName").value.trim();
-    if(!name) return alert("Enter username!");
-    if(!students[name]) return alert("Student not found 😭");
-    currentStudent=name; show("studentMenu"); buildTermButtons();
-  };
-};
-</script>
-</body>
-</html>
