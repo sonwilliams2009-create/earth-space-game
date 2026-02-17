@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>ECHS KY Earth & Space Science Bellwork</title>
+<title>ECHS KY Bellwork System</title>
 
 <style>
 body{
   margin:0;
-  font-family:Arial, sans-serif;
+  font-family:Arial;
   background:#05051a;
   color:white;
   text-align:center;
@@ -21,14 +21,8 @@ h1{
   color:#00e5ff;
 }
 
-.screen{
-  display:none;
-  padding:30px;
-}
-
-#login{
-  display:block;
-}
+.screen{display:none;padding:30px;}
+#login{display:block;}
 
 button,input,select{
   padding:12px;
@@ -49,20 +43,12 @@ button:hover{
   color:black;
 }
 
-img{
-  max-width:380px;
-  margin:15px;
-  border-radius:12px;
-  border:2px solid orange;
-}
-
-#unitChecklist{
-  text-align:left;
-  max-width:600px;
-  margin:20px auto;
+.card{
   background:#111;
-  padding:15px;
-  border-radius:12px;
+  padding:20px;
+  margin:20px auto;
+  border-radius:15px;
+  max-width:500px;
 }
 </style>
 </head>
@@ -86,33 +72,41 @@ img{
 <div id="dashboard" class="screen">
   <h2>Teacher Dashboard</h2>
 
-  <h3>Add Student</h3>
-  <input id="newStudentName" placeholder="Student Username">
-  <button id="addStudentBtn">Add Student</button>
+  <div class="card">
+    <h3>Add Student</h3>
+    <input id="newStudentName" placeholder="Student Username">
+    <button id="addStudentBtn">Add Student</button>
+  </div>
 
-  <hr>
+  <div class="card">
+    <h3>Assign Exact Unit</h3>
 
-  <h3>Assign Units to Student</h3>
+    <select id="studentSelect"></select>
+    <select id="unitSelect"></select>
 
-  <select id="studentSelect"></select>
-  <button id="loadUnitsBtn">Load Student Units</button>
+    <button id="assignUnitBtn">Assign Unit ✅</button>
 
-  <div id="unitChecklist"></div>
+    <p id="assignStatus"></p>
+  </div>
 
-  <button id="saveUnitsBtn">Save Unit Assignment ✅</button>
-
-  <hr>
-
-  <h3>Leaderboard</h3>
-  <div id="leaderboard"></div>
+  <div class="card">
+    <h3>Leaderboard</h3>
+    <div id="leaderboard"></div>
+  </div>
 
   <button onclick="showScreen('login')">Logout</button>
 </div>
 
 <!-- STUDENT MENU -->
 <div id="studentMenu" class="screen">
-  <h2>Student Bellwork Menu</h2>
-  <div id="unitButtons"></div>
+  <h2>Student Bellwork</h2>
+
+  <div class="card">
+    <h3>Your Assigned Unit:</h3>
+    <p id="assignedUnitText"></p>
+    <button id="startUnitBtn">Start Bellwork ▶</button>
+  </div>
+
   <button onclick="showScreen('login')">Logout</button>
 </div>
 
@@ -120,20 +114,19 @@ img{
 <div id="quizScreen" class="screen">
   <h2 id="unitTitle"></h2>
   <p id="questionText"></p>
-  <div id="questionImage"></div>
   <div id="answerButtons"></div>
 </div>
 
 <script>
 /* ============================
-   GLOBAL DATA
+   DATA STORAGE (LOCAL)
 ============================ */
 
 let students = JSON.parse(localStorage.getItem("students")) || {};
 
 let currentStudent = "";
 let currentUnit = "";
-let currentQuestionIndex = 0;
+let questionIndex = 0;
 let score = 0;
 
 /* ============================
@@ -160,30 +153,27 @@ const units = {
   unit17:"Unit 17: Magnetic Field",
   unit18:"Unit 18: Rocks & Minerals",
   unit19:"Unit 19: Geologic Time",
-  unit20:"Unit 20: Year Review"
+  unit20:"Unit 20: Final Review"
 };
 
 /* ============================
-   QUESTION BANK (SAMPLES)
+   QUESTION BANK (Sample)
 ============================ */
 
 const questionBank = {
+unit6:[
+ {q:"Divergent plate boundaries mean plates…",
+  a:["Move apart","Collide","Stop moving"],
+  correct:0},
+
+ {q:"The Ring of Fire surrounds the…",
+  a:["Pacific Ocean","Atlantic Ocean","Indian Ocean"],
+  correct:0}
+],
+
 unit1:[
  {q:"The Big Bang created…",
-  img:"https://upload.wikimedia.org/wikipedia/commons/c/c3/BigBang_Animation.gif",
   a:["The Universe","Earth","The Moon"],
-  correct:0}
-],
-unit2:[
- {q:"A light-year measures…",
-  img:"https://upload.wikimedia.org/wikipedia/commons/d/d2/Light-year.svg",
-  a:["Distance","Time","Mass"],
-  correct:0}
-],
-unit20:[
- {q:"Renewable resources include…",
-  img:"https://upload.wikimedia.org/wikipedia/commons/7/7f/Windmills_Steinfurt.jpg",
-  a:["Solar, wind, water","Coal only","Oil only"],
   correct:0}
 ]
 };
@@ -198,7 +188,7 @@ function showScreen(id){
 }
 
 /* ============================
-   SAVE DATA
+   SAVE FUNCTION
 ============================ */
 
 function saveStudents(){
@@ -206,18 +196,31 @@ function saveStudents(){
 }
 
 /* ============================
-   TEACHER FUNCTIONS
+   TEACHER DASHBOARD SETUP
 ============================ */
 
-function refreshDropdown(){
-  let select = document.getElementById("studentSelect");
-  select.innerHTML="";
+function refreshTeacherMenus(){
+  let studentDrop=document.getElementById("studentSelect");
+  studentDrop.innerHTML="";
+
   for(let s in students){
     let opt=document.createElement("option");
     opt.value=s;
     opt.textContent=s;
-    select.appendChild(opt);
+    studentDrop.appendChild(opt);
   }
+
+  let unitDrop=document.getElementById("unitSelect");
+  unitDrop.innerHTML="";
+
+  for(let u in units){
+    let opt=document.createElement("option");
+    opt.value=u;
+    opt.textContent=units[u];
+    unitDrop.appendChild(opt);
+  }
+
+  loadLeaderboard();
 }
 
 function loadLeaderboard(){
@@ -229,34 +232,13 @@ function loadLeaderboard(){
 }
 
 /* ============================
-   UNIT CHECKLIST BUILDER
-============================ */
-
-function showUnitChecklist(studentName){
-  let div=document.getElementById("unitChecklist");
-  div.innerHTML="<h3>Select Units:</h3>";
-
-  Object.keys(units).forEach(unitKey=>{
-    let checked = students[studentName].assigned.includes(unitKey);
-
-    div.innerHTML += `
-      <label>
-        <input type="checkbox" value="${unitKey}" ${checked ? "checked":""}>
-        ${units[unitKey]}
-      </label><br>
-    `;
-  });
-}
-
-/* ============================
    BUTTON EVENTS
 ============================ */
 
 document.getElementById("teacherLoginBtn").onclick=()=>{
   if(document.getElementById("teacherPass").value==="caves"){
     showScreen("dashboard");
-    refreshDropdown();
-    loadLeaderboard();
+    refreshTeacherMenus();
   } else alert("Wrong password");
 };
 
@@ -264,34 +246,22 @@ document.getElementById("addStudentBtn").onclick=()=>{
   let name=document.getElementById("newStudentName").value.trim();
   if(!name) return alert("Enter username");
 
-  students[name]={score:0, assigned:["unit1"]};
+  students[name]={score:0, assignedUnit:"unit1"};
   saveStudents();
 
-  refreshDropdown();
-  loadLeaderboard();
   alert("Student Added!");
+  refreshTeacherMenus();
 };
 
-document.getElementById("loadUnitsBtn").onclick=()=>{
+document.getElementById("assignUnitBtn").onclick=()=>{
   let student=document.getElementById("studentSelect").value;
-  if(!student) return alert("Pick a student");
+  let unit=document.getElementById("unitSelect").value;
 
-  showUnitChecklist(student);
-};
-
-document.getElementById("saveUnitsBtn").onclick=()=>{
-  let student=document.getElementById("studentSelect").value;
-  if(!student) return alert("Pick a student");
-
-  let checkedUnits=[];
-  document.querySelectorAll("#unitChecklist input:checked").forEach(box=>{
-    checkedUnits.push(box.value);
-  });
-
-  students[student].assigned = checkedUnits;
+  students[student].assignedUnit=unit;
   saveStudents();
 
-  alert("Units Saved Successfully ✅");
+  document.getElementById("assignStatus").innerText =
+    `✅ Assigned ${units[unit]} to ${student}`;
 };
 
 /* ============================
@@ -300,85 +270,83 @@ document.getElementById("saveUnitsBtn").onclick=()=>{
 
 document.getElementById("studentLoginBtn").onclick=()=>{
   let name=document.getElementById("studentName").value.trim();
-  if(!students[name]) return alert("Student not found");
+
+  if(!students[name]) return alert("Student not found 😭");
 
   currentStudent=name;
+  currentUnit=students[name].assignedUnit;
+
+  document.getElementById("assignedUnitText").innerText =
+    units[currentUnit];
+
   showScreen("studentMenu");
-  buildUnitButtons();
 };
 
 /* ============================
-   STUDENT UNIT BUTTONS
+   START UNIT
 ============================ */
 
-function buildUnitButtons(){
-  let div=document.getElementById("unitButtons");
-  div.innerHTML="";
-
-  students[currentStudent].assigned.forEach(u=>{
-    let btn=document.createElement("button");
-    btn.textContent=units[u];
-    btn.onclick=()=>startUnit(u);
-    div.appendChild(btn);
-  });
-}
+document.getElementById("startUnitBtn").onclick=()=>{
+  questionIndex=0;
+  score=0;
+  showScreen("quizScreen");
+  showQuestion();
+};
 
 /* ============================
    QUIZ SYSTEM
 ============================ */
 
-function startUnit(unitKey){
-  currentUnit=unitKey;
-  currentQuestionIndex=0;
-  score=0;
-
-  showScreen("quizScreen");
-  showQuestion();
-}
-
 function showQuestion(){
   let questions=questionBank[currentUnit];
+
   if(!questions){
-    alert("No questions yet for this unit.");
+    alert("No questions added yet for this unit.");
     showScreen("studentMenu");
     return;
   }
 
-  let q=questions[currentQuestionIndex];
+  let q=questions[questionIndex];
 
-  document.getElementById("unitTitle").textContent=units[currentUnit];
-  document.getElementById("questionText").textContent=q.q;
+  document.getElementById("unitTitle").innerText =
+    units[currentUnit];
 
-  let imgDiv=document.getElementById("questionImage");
-  imgDiv.innerHTML="";
-  if(q.img){
-    let img=document.createElement("img");
-    img.src=q.img;
-    imgDiv.appendChild(img);
-  }
+  document.getElementById("questionText").innerText=q.q;
 
   let ansDiv=document.getElementById("answerButtons");
   ansDiv.innerHTML="";
 
   q.a.forEach((choice,index)=>{
     let btn=document.createElement("button");
-    btn.textContent=choice;
+    btn.innerText=choice;
     btn.onclick=()=>checkAnswer(index===q.correct);
     ansDiv.appendChild(btn);
   });
 }
 
 function checkAnswer(correct){
-  if(correct) score+=10;
+  if(correct){
+    score+=10;
+    alert("Correct ✅");
+  } else {
+    alert("Wrong ❌");
+  }
 
-  alert(correct ? "Correct ✅" : "Wrong ❌");
+  questionIndex++;
 
-  students[currentStudent].score += score;
-  saveStudents();
+  let questions=questionBank[currentUnit];
 
-  showScreen("studentMenu");
-  buildUnitButtons();
-  loadLeaderboard();
+  if(questionIndex<questions.length){
+    showQuestion();
+  } else {
+    alert("Unit Complete! Score: "+score);
+
+    students[currentStudent].score += score;
+    saveStudents();
+
+    showScreen("studentMenu");
+    loadLeaderboard();
+  }
 }
 </script>
 
