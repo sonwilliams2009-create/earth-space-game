@@ -3,63 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <title>ECHS KY Earth & Space Science Bellwork</title>
-
 <style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#05051a;
-  color:white;
-  text-align:center;
-}
-
-header{
-  background:#111;
-  padding:15px;
-  border-bottom:3px solid orange;
-  color:#00e5ff;
-  font-size:22px;
-  font-weight:bold;
-}
-
+body{margin:0;font-family:Arial;background:#05051a;color:white;text-align:center;}
+header{background:#111;padding:15px;border-bottom:3px solid orange;color:#00e5ff;font-size:22px;font-weight:bold;}
 .screen{display:none;padding:30px;}
-
-button,input,select{
-  padding:12px;
-  margin:10px;
-  border-radius:10px;
-  border:none;
-  font-size:16px;
-}
-
-button{
-  background:#ff9800;
-  cursor:pointer;
-  font-weight:bold;
-}
-
-button:hover{
-  background:white;
-  color:black;
-}
-
-.card{
-  background:#111;
-  padding:20px;
-  margin:20px auto;
-  border-radius:15px;
-  max-width:600px;
-  box-shadow:0 0 10px black;
-}
-
-#answers button{
-  display:block;
-  width:80%;
-  margin:10px auto;
-}
+button,input,select{padding:12px;margin:10px;border-radius:10px;border:none;font-size:16px;}
+button{background:#ff9800;cursor:pointer;font-weight:bold;}
+button:hover{background:white;color:black;}
+.card{background:#111;padding:20px;margin:20px auto;border-radius:15px;max-width:600px;box-shadow:0 0 10px black;}
+#answers button{display:block;width:80%;margin:10px auto;}
 </style>
 </head>
-
 <body>
 
 <header>🌍 ECHS KY Earth & Space Science Bellwork</header>
@@ -101,16 +55,17 @@ button:hover{
 
     <h3>Add Student</h3>
     <input id="newStudent" placeholder="Student Username">
-    <button onclick="addStudent()">Add</button>
+    <button onclick="addStudent()">Add Student</button>
 
     <h3>Assign Unit</h3>
     <select id="studentSelect"></select>
     <select id="unitSelect"></select>
     <button onclick="assignUnit()">Assign Unit</button>
 
-    <h3>Assignments</h3>
+    <h3>Assignments & Scores</h3>
     <div id="assignments"></div>
 
+    <button onclick="exportGrades()">Export Grades to CSV</button>
     <button onclick="showScreen('mainMenu')">Logout</button>
   </div>
 </div>
@@ -201,7 +156,7 @@ const units = {
   ]
 };
 
-/* Populate Unit Dropdown */
+/* ================= POPULATE DROPDOWNS ================= */
 function loadUnits(){
   let unitSelect = document.getElementById("unitSelect");
   unitSelect.innerHTML="";
@@ -213,7 +168,6 @@ function loadUnits(){
   });
 }
 
-/* Populate Student Dropdown */
 function loadStudents(){
   let studentSelect=document.getElementById("studentSelect");
   studentSelect.innerHTML="";
@@ -226,7 +180,7 @@ function loadStudents(){
   refreshAssignments();
 }
 
-/* ================= TEACHER ================= */
+/* ================= TEACHER FUNCTIONS ================= */
 function teacherLogin(){
   if(document.getElementById("teacherPass").value==="caves"){
     showScreen("teacherDash");
@@ -246,9 +200,8 @@ function addStudent(){
     return;
   }
 
-  students[name]={unit:null};
+  students[name]={unit:null,scores:{}};
   localStorage.setItem("students", JSON.stringify(students));
-
   alert("Student Added!");
   document.getElementById("newStudent").value="";
   loadStudents();
@@ -259,10 +212,8 @@ function assignUnit(){
   let unit=document.getElementById("unitSelect").value;
 
   if(!student) return alert("No student selected!");
-
   students[student].unit=unit;
   localStorage.setItem("students", JSON.stringify(students));
-
   alert(student+" assigned to "+unit);
   refreshAssignments();
 }
@@ -271,11 +222,37 @@ function refreshAssignments(){
   let div=document.getElementById("assignments");
   div.innerHTML="";
   for(let s in students){
-    div.innerHTML+=`${s} → ${students[s].unit || "No Unit Assigned"}<br>`;
+    let score = students[s].scores[students[s].unit] || 0;
+    div.innerHTML+=`${s} → ${students[s].unit || "No Unit"} (Score: ${score})<br>`;
   }
 }
 
-/* ================= STUDENT ================= */
+function exportGrades(){
+  let csv="Username";
+  let allUnits=Object.keys(units);
+  allUnits.forEach(u=>csv+=","+u);
+  csv+="\n";
+
+  for(let s in students){
+    csv+=s;
+    allUnits.forEach(u=>{
+      let val=(students[s].scores && students[s].scores[u]) || 0;
+      csv+=","+val;
+    });
+    csv+="\n";
+  }
+
+  let blob = new Blob([csv], {type: "text/csv"});
+  let url = URL.createObjectURL(blob);
+  let a = document.createElement("a");
+  a.href = url;
+  a.download = "grades.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+/* ================= STUDENT FUNCTIONS ================= */
 function studentLogin(){
   let name=document.getElementById("studentUser").value.trim();
   if(!students[name]){
@@ -297,7 +274,7 @@ function studentLogin(){
   showScreen("studentMenu");
 }
 
-/* ================= QUIZ ================= */
+/* ================= QUIZ FUNCTIONS ================= */
 function startQuiz(){
   quizIndex=0;
   score=0;
@@ -333,9 +310,17 @@ function checkAnswer(i){
   if(quizIndex<questions.length){
     showQuestion();
   } else {
-    alert("Bellwork Complete! Score: "+score);
-    showScreen("studentMenu");
+    finishQuiz();
   }
+}
+
+function finishQuiz(){
+  alert("Bellwork Complete! Score: "+score);
+  if(!students[currentStudent].scores) students[currentStudent].scores={};
+  students[currentStudent].scores[currentUnit]=score;
+  localStorage.setItem("students", JSON.stringify(students));
+  showScreen("studentMenu");
+  refreshAssignments();
 }
 </script>
 
