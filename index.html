@@ -55,6 +55,15 @@ img{
   border-radius:12px;
   border:2px solid orange;
 }
+
+#unitChecklist{
+  text-align:left;
+  max-width:600px;
+  margin:20px auto;
+  background:#111;
+  padding:15px;
+  border-radius:12px;
+}
 </style>
 </head>
 
@@ -81,9 +90,18 @@ img{
   <input id="newStudentName" placeholder="Student Username">
   <button id="addStudentBtn">Add Student</button>
 
-  <h3>Assign Units</h3>
+  <hr>
+
+  <h3>Assign Units to Student</h3>
+
   <select id="studentSelect"></select>
-  <button id="assignAllBtn">Assign ALL Units</button>
+  <button id="loadUnitsBtn">Load Student Units</button>
+
+  <div id="unitChecklist"></div>
+
+  <button id="saveUnitsBtn">Save Unit Assignment ✅</button>
+
+  <hr>
 
   <h3>Leaderboard</h3>
   <div id="leaderboard"></div>
@@ -119,7 +137,7 @@ let currentQuestionIndex = 0;
 let score = 0;
 
 /* ============================
-   UNITS (Kentucky ESS Topics)
+   UNITS LIST
 ============================ */
 
 const units = {
@@ -146,74 +164,28 @@ const units = {
 };
 
 /* ============================
-   FULL QUESTION BANK FORMAT
+   QUESTION BANK (SAMPLES)
 ============================ */
 
 const questionBank = {
-
 unit1:[
- {q:"The Big Bang explains the…",
+ {q:"The Big Bang created…",
   img:"https://upload.wikimedia.org/wikipedia/commons/c/c3/BigBang_Animation.gif",
-  a:["Origin of the universe","Formation of Earth","Cause of tides"],
-  correct:0},
-
- {q:"The universe is about…",
-  img:"https://upload.wikimedia.org/wikipedia/commons/6/6f/Cosmic_Microwave_Background.png",
-  a:["13.8 billion years old","500 years old","1 million years old"],
-  correct:0},
-
- {q:"Galaxies are moving…",
-  img:"https://upload.wikimedia.org/wikipedia/commons/5/5a/Expanding_Universe.png",
-  a:["Away from each other","Toward Earth","Not moving"],
-  correct:0},
-
- {q:"Dark energy causes…",
-  img:"",
-  a:["Universe expansion speeding up","Earthquakes","Volcanoes"],
-  correct:0},
-
- {q:"Cosmic background radiation supports…",
-  img:"",
-  a:["Big Bang Theory","Plate Tectonics","Weather cycles"],
+  a:["The Universe","Earth","The Moon"],
   correct:0}
 ],
-
 unit2:[
  {q:"A light-year measures…",
   img:"https://upload.wikimedia.org/wikipedia/commons/d/d2/Light-year.svg",
-  a:["Distance","Time","Temperature"],
-  correct:0},
-
- {q:"Our Sun is a…",
-  img:"https://upload.wikimedia.org/wikipedia/commons/c/c3/Sun_white.jpg",
-  a:["Star","Planet","Asteroid"],
-  correct:0},
-
- {q:"The Milky Way is a…",
-  img:"https://upload.wikimedia.org/wikipedia/commons/8/82/Milky_Way_Galaxy.jpg",
-  a:["Galaxy","Planet","Moon"],
-  correct:0},
-
- {q:"Red giants are…",
-  img:"",
-  a:["Old expanding stars","Newborn planets","Black holes"],
-  correct:0},
-
- {q:"Supernovas create…",
-  img:"",
-  a:["Heavy elements","Clouds","Ocean tides"],
+  a:["Distance","Time","Mass"],
   correct:0}
 ],
-
-/* ✅ ADD MORE QUESTIONS HERE UNLIMITED */
-
 unit20:[
  {q:"Renewable resources include…",
   img:"https://upload.wikimedia.org/wikipedia/commons/7/7f/Windmills_Steinfurt.jpg",
-  a:["Solar, wind, water","Coal and oil","Only natural gas"],
+  a:["Solar, wind, water","Coal only","Oil only"],
   correct:0}
 ]
-
 };
 
 /* ============================
@@ -257,7 +229,27 @@ function loadLeaderboard(){
 }
 
 /* ============================
-   BUTTON FIXES
+   UNIT CHECKLIST BUILDER
+============================ */
+
+function showUnitChecklist(studentName){
+  let div=document.getElementById("unitChecklist");
+  div.innerHTML="<h3>Select Units:</h3>";
+
+  Object.keys(units).forEach(unitKey=>{
+    let checked = students[studentName].assigned.includes(unitKey);
+
+    div.innerHTML += `
+      <label>
+        <input type="checkbox" value="${unitKey}" ${checked ? "checked":""}>
+        ${units[unitKey]}
+      </label><br>
+    `;
+  });
+}
+
+/* ============================
+   BUTTON EVENTS
 ============================ */
 
 document.getElementById("teacherLoginBtn").onclick=()=>{
@@ -272,20 +264,34 @@ document.getElementById("addStudentBtn").onclick=()=>{
   let name=document.getElementById("newStudentName").value.trim();
   if(!name) return alert("Enter username");
 
-  students[name]={score:0, assigned:Object.keys(units)};
+  students[name]={score:0, assigned:["unit1"]};
   saveStudents();
 
-  document.getElementById("newStudentName").value="";
   refreshDropdown();
   loadLeaderboard();
   alert("Student Added!");
 };
 
-document.getElementById("assignAllBtn").onclick=()=>{
+document.getElementById("loadUnitsBtn").onclick=()=>{
   let student=document.getElementById("studentSelect").value;
-  students[student].assigned=Object.keys(units);
+  if(!student) return alert("Pick a student");
+
+  showUnitChecklist(student);
+};
+
+document.getElementById("saveUnitsBtn").onclick=()=>{
+  let student=document.getElementById("studentSelect").value;
+  if(!student) return alert("Pick a student");
+
+  let checkedUnits=[];
+  document.querySelectorAll("#unitChecklist input:checked").forEach(box=>{
+    checkedUnits.push(box.value);
+  });
+
+  students[student].assigned = checkedUnits;
   saveStudents();
-  alert("All units assigned!");
+
+  alert("Units Saved Successfully ✅");
 };
 
 /* ============================
@@ -332,8 +338,9 @@ function startUnit(unitKey){
 
 function showQuestion(){
   let questions=questionBank[currentUnit];
-  if(!questions || currentQuestionIndex>=questions.length){
-    finishUnit();
+  if(!questions){
+    alert("No questions yet for this unit.");
+    showScreen("studentMenu");
     return;
   }
 
@@ -363,15 +370,12 @@ function showQuestion(){
 
 function checkAnswer(correct){
   if(correct) score+=10;
-  currentQuestionIndex++;
-  showQuestion();
-}
 
-function finishUnit(){
+  alert(correct ? "Correct ✅" : "Wrong ❌");
+
   students[currentStudent].score += score;
   saveStudents();
 
-  alert("Unit Complete! Score: "+score);
   showScreen("studentMenu");
   buildUnitButtons();
   loadLeaderboard();
