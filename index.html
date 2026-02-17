@@ -78,16 +78,13 @@ label input{
 <div id="dashboard" class="screen">
 <h2>Teacher Dashboard 🎓</h2>
 
-<h3>Assign Units to Student 📚</h3>
+<h3>Add New Student ➕</h3>
+<input id="newStudentName" placeholder="Student Name">
+<button id="addStudentBtn">Add Student</button>
+
+<h3>Assign Full Units to Student 📚</h3>
 <select id="selectStudentDropdown"></select>
-<select id="selectTermDropdown">
-  <option value="term1">Term 1 🟢</option>
-  <option value="term2">Term 2 🔵</option>
-  <option value="term3">Term 3 🟣</option>
-  <option value="term4">Term 4 🟡</option>
-</select>
-<div id="unitAssignList"></div>
-<button id="saveAssignmentsBtn">Save Assignments 💾</button>
+<button id="assignAllBtn">Assign All Units 💪</button>
 
 <h3>Leaderboard 🏆</h3>
 <div id="board"></div>
@@ -119,11 +116,8 @@ document.getElementById("musicBtn").onclick=function(){
   else{ music.pause(); this.innerText="🔇 Music OFF"; }
 };
 
-/* PREDEFINED STUDENTS */
-let students={
-  "Alice":{allowedUnits:{term1:{unit1:true,unit2:true,unit3:true,unit4:true,unit5:true},term2:{unit6:true,unit7:true,unit8:true,unit9:true,unit10:true},term3:{unit11:true,unit12:true,unit13:true,unit14:true,unit15:true},term4:{unit16:true,unit17:true,unit18:true,unit19:true,unit20:true}},scores:{term1:0,term2:0,term3:0,term4:0,total:0}},
-  "Bob":{allowedUnits:{term1:{unit1:true,unit2:true,unit3:true,unit4:true,unit5:true},term2:{unit6:true,unit7:true,unit8:true,unit9:true,unit10:true},term3:{unit11:true,unit12:true,unit13:true,unit14:true,unit15:true},term4:{unit16:true,unit17:true,unit18:true,unit19:true,unit20:true}},scores:{term1:0,term2:0,term3:0,term4:0,total:0}}
-};
+/* STUDENTS STORAGE */
+let students={};
 
 /* UNITS & TERMS */
 const courseUnits={
@@ -155,72 +149,141 @@ term3:["unit11","unit12","unit13","unit14","unit15"],
 term4:["unit16","unit17","unit18","unit19","unit20"]
 };
 
-/* QUESTIONS SAMPLE */
+/* ================= FULL QUESTION BANK ================= */
 const questionBank={
-unit1:[{q:"The Big Bang explains…",a:[{text:"Origin of universe",correct:true},{text:"Oceans",correct:false}]}],
-unit2:[{q:"A light year measures…",a:[{text:"Distance",correct:true},{text:"Time",correct:false}]}],
-unit3:[{q:"Planets orbit the sun because…",a:[{text:"Gravity",correct:true},{text:"Magnetism",correct:false}]}],
-unit4:[{q:"Gravity affects…",a:[{text:"All objects with mass",correct:true},{text:"Only planets",correct:false}]}],
-unit5:[{q:"Earth’s magnetic field comes from…",a:[{text:"Outer core",correct:true},{text:"Crust",correct:false}]}],
-unit6:[{q:"Plate tectonics explains…",a:[{text:"Continental movement",correct:true},{text:"Earthquakes only",correct:false}]}]
+unit1:[
+  {q:"The Big Bang explains…",a:[{text:"Origin of universe",correct:true},{text:"Oceans",correct:false},{text:"Earth",correct:false}]},
+  {q:"The universe is approximately…",a:[{text:"13.8 billion years old",correct:true},{text:"1 million years old",correct:false},{text:"4.5 billion years",correct:false}]},
+  {q:"Galaxies are moving…",a:[{text:"Away from each other",correct:true},{text:"Toward each other",correct:false},{text:"Stationary",correct:false}]}
+],
+unit2:[
+  {q:"A light year measures…",a:[{text:"Distance",correct:true},{text:"Time",correct:false},{text:"Brightness",correct:false}]},
+  {q:"The Sun is a…",a:[{text:"Star",correct:true},{text:"Planet",correct:false},{text:"Moon",correct:false}]},
+  {q:"Our galaxy is called…",a:[{text:"Milky Way",correct:true},{text:"Andromeda",correct:false},{text:"Triangulum",correct:false}]}
+],
+unit3:[
+  {q:"Planets orbit the sun because…",a:[{text:"Gravity",correct:true},{text:"Magnetism",correct:false},{text:"Wind",correct:false}]},
+  {q:"Earth completes one orbit in…",a:[{text:"1 year",correct:true},{text:"24 hours",correct:false},{text:"1 month",correct:false}]},
+  {q:"The planets are mostly…",a:[{text:"Spherical",correct:true},{text:"Flat",correct:false},{text:"Cubic",correct:false}]}
+],
+unit4:[
+  {q:"Gravity affects…",a:[{text:"All objects with mass",correct:true},{text:"Only planets",correct:false},{text:"Only stars",correct:false}]},
+  {q:"Gravity keeps…",a:[{text:"Planets in orbit",correct:true},{text:"Stars together",correct:false},{text:"Nothing",correct:false}]},
+  {q:"Weight is…",a:[{text:"A measure of gravity",correct:true},{text:"Mass",correct:false},{text:"Density",correct:false}]}
+],
+unit5:[
+  {q:"Earth’s magnetic field comes from…",a:[{text:"Outer core",correct:true},{text:"Crust",correct:false},{text:"Mantle",correct:false}]},
+  {q:"Earth’s densest layer is…",a:[{text:"Inner core",correct:true},{text:"Mantle",correct:false},{text:"Crust",correct:false}]},
+  {q:"The crust is…",a:[{text:"Thin outer layer",correct:true},{text:"Very thick",correct:false},{text:"Liquid",correct:false}]}
+],
+unit6:[
+  {q:"Plate tectonics explains…",a:[{text:"Continental movement",correct:true},{text:"Earthquakes only",correct:false},{text:"Volcanoes only",correct:false}]},
+  {q:"Divergent plates…",a:[{text:"Move apart",correct:true},{text:"Collide",correct:false},{text:"Slide past",correct:false}]},
+  {q:"Ring of Fire surrounds…",a:[{text:"Pacific Ocean",correct:true},{text:"Atlantic Ocean",correct:false},{text:"Indian Ocean",correct:false}]}
+],
+unit7:[
+  {q:"Earthquakes occur due to…",a:[{text:"Tectonic movement",correct:true},{text:"Weather",correct:false},{text:"Volcanoes",correct:false}]},
+  {q:"The point inside Earth where an earthquake starts is called…",a:[{text:"Focus",correct:true},{text:"Epicenter",correct:false},{text:"Fault",correct:false}]},
+  {q:"The surface point above focus is…",a:[{text:"Epicenter",correct:true},{text:"Focus",correct:false},{text:"Fault",correct:false}]}
+],
+unit8:[
+  {q:"Volcanoes form when…",a:[{text:"Magma reaches surface",correct:true},{text:"Water freezes",correct:false},{text:"Plates collide silently",correct:false}]},
+  {q:"Mountains can form from…",a:[{text:"Plate collision",correct:true},{text:"Erosion",correct:false},{text:"Ocean currents",correct:false}]},
+  {q:"Active volcanoes are…",a:[{text:"Currently erupting or may erupt",correct:true},{text:"Extinct",correct:false},{text:"Dormant forever",correct:false}]}
+],
+unit9:[
+  {q:"Weather systems are caused by…",a:[{text:"Atmosphere movement",correct:true},{text:"Earthquakes",correct:false},{text:"Gravity alone",correct:false}]},
+  {q:"Cold fronts bring…",a:[{text:"Storms",correct:true},{text:"Heat waves",correct:false},{text:"Volcanoes",correct:false}]},
+  {q:"Warm fronts bring…",a:[{text:"Cloudy skies",correct:true},{text:"Snow",correct:false},{text:"Tornadoes",correct:false}]}
+],
+unit10:[
+  {q:"Climate change is caused by…",a:[{text:"Human activity & greenhouse gases",correct:true},{text:"Gravity",correct:false},{text:"Plate movement only",correct:false}]},
+  {q:"Global warming affects…",a:[{text:"Weather & ecosystems",correct:true},{text:"Only oceans",correct:false},{text:"Only mountains",correct:false}]},
+  {q:"Carbon dioxide comes mainly from…",a:[{text:"Fossil fuels",correct:true},{text:"Rocks",correct:false},{text:"Sunlight",correct:false}]}
+],
+unit11:[
+  {q:"Oceans cover…",a:[{text:"~71% of Earth's surface",correct:true},{text:"50%",correct:false},{text:"25%",correct:false}]},
+  {q:"Currents are driven by…",a:[{text:"Wind & temperature",correct:true},{text:"Gravity alone",correct:false},{text:"Volcanoes",correct:false}]},
+  {q:"The largest ocean is…",a:[{text:"Pacific",correct:true},{text:"Atlantic",correct:false},{text:"Indian",correct:false}]}
+],
+unit12:[
+  {q:"Earth's resources include…",a:[{text:"Water, minerals, soil",correct:true},{text:"Sunlight only",correct:false},{text:"Air only",correct:false}]},
+  {q:"Renewable resources…",a:[{text:"Can be replenished",correct:true},{text:"Cannot be replaced",correct:false},{text:"Are infinite",correct:false}]},
+  {q:"Fossil fuels are…",a:[{text:"Non-renewable",correct:true},{text:"Renewable",correct:false},{text:"Abundant",correct:false}]}
+],
+unit13:[
+  {q:"Human impact includes…",a:[{text:"Pollution & deforestation",correct:true},{text:"Volcanoes",correct:false},{text:"Earthquakes",correct:false}]},
+  {q:"Climate action helps…",a:[{text:"Protect ecosystems",correct:true},{text:"Increase CO2",correct:false},{text:"Stop gravity",correct:false}]},
+  {q:"Recycling reduces…",a:[{text:"Waste & pollution",correct:true},{text:"Gravity",correct:false},{text:"Earthquakes",correct:false}]}
+],
+unit14:[
+  {q:"Tides are caused by…",a:[{text:"Moon's gravity",correct:true},{text:"Sunlight",correct:false},{text:"Wind",correct:false}]},
+  {q:"High tides occur when…",a:[{text:"Moon is overhead",correct:true},{text:"Sun is shining",correct:false},{text:"Earthquakes happen",correct:false}]},
+  {q:"The moon affects…",a:[{text:"Oceans",correct:true},{text:"Mountains",correct:false},{text:"Atmosphere only",correct:false}]}
+],
+unit15:[
+  {q:"Space exploration began with…",a:[{text:"Satellites & rockets",correct:true},{text:"Planes",correct:false},{text:"Cars",correct:false}]},
+  {q:"First human in space…",a:[{text:"Yuri Gagarin",correct:true},{text:"Neil Armstrong",correct:false},{text:"Buzz Aldrin",correct:false}]},
+  {q:"International Space Station is…",a:[{text:"Orbiting lab",correct:true},{text:"Moon base",correct:false},{text:"Mars colony",correct:false}]}
+],
+unit16:[
+  {q:"Meteorology studies…",a:[{text:"Weather & atmosphere",correct:true},{text:"Stars",correct:false},{text:"Oceans",correct:false}]},
+  {q:"Weather prediction uses…",a:[{text:"Satellites & models",correct:true},{text:"Tides only",correct:false},{text:"Gravity only",correct:false}]},
+  {q:"Storms form due to…",a:[{text:"Air pressure differences",correct:true},{text:"Earthquakes",correct:false},{text:"Magnetism",correct:false}]}
+],
+unit17:[
+  {q:"Earth’s magnetic field comes from…",a:[{text:"Liquid outer core",correct:true},{text:"Mantle",correct:false},{text:"Crust",correct:false}]},
+  {q:"Auroras occur near…",a:[{text:"Poles",correct:true},{text:"Equator",correct:false},{text:"Mountains",correct:false}]},
+  {q:"Magnetic poles…",a:[{text:"Shift slowly",correct:true},{text:"Never move",correct:false},{text:"Spin daily",correct:false}]}
+],
+unit18:[
+  {q:"Rocks are classified as…",a:[{text:"Igneous, sedimentary, metamorphic",correct:true},{text:"Metal only",correct:false},{text:"Liquid only",correct:false}]},
+  {q:"Minerals are…",a:[{text:"Naturally occurring solids",correct:true},{text:"Man-made",correct:false},{text:"Gas",correct:false}]},
+  {q:"Sedimentary rocks form from…",a:[{text:"Sediment compaction",correct:true},{text:"Cooling magma",correct:false},{text:"Pressure alone",correct:false}]}
+],
+unit19:[
+  {q:"Fossils are…",a:[{text:"Remains of organisms",correct:true},{text:"Rocks only",correct:false},{text:"Water bodies",correct:false}]},
+  {q:"Geologic time measures…",a:[{text:"Earth's history",correct:true},{text:"1 year",correct:false},{text:"1 century",correct:false}]},
+  {q:"Index fossils help…",a:[{text:"Date rock layers",correct:true},{text:"Predict weather",correct:false},{text:"Measure gravity",correct:false}]}
+],
+unit20:[
+  {q:"Final Review: The Big Bang created…",a:[{text:"The Universe",correct:true},{text:"Earth",correct:false},{text:"Sun",correct:false}]},
+  {q:"Earthquakes are caused by…",a:[{text:"Plate movements",correct:true},{text:"Wind",correct:false},{text:"Volcanoes only",correct:false}]},
+  {q:"Renewable resources include…",a:[{text:"Water, solar, wind",correct:true},{text:"Coal only",correct:false},{text:"Oil only",correct:false}]}
 };
 
-/* ================= SCREEN CONTROL ================= */
+/* ================= SCREEN CONTROL & TEACHER FUNCTIONS ================= */
 function show(id){ document.querySelectorAll(".screen").forEach(s=>s.style.display="none"); document.getElementById(id).style.display="block"; }
-
-/* ================= TEACHER FUNCTIONS ================= */
+document.getElementById("addStudentBtn").onclick=function(){
+  const name=document.getElementById("newStudentName").value.trim();
+  if(!name) return alert("Enter a name!");
+  if(students[name]) return alert("Student already exists!");
+  let allowedUnits={}, scores={term1:0,term2:0,term3:0,term4:0,total:0};
+  for(let term in terms){ allowedUnits[term]={}; terms[term].forEach(u=> allowedUnits[term][u]=true);}
+  students[name]={allowedUnits,scores};
+  document.getElementById("newStudentName").value="";
+  populateStudentDropdown(); loadLeaderboard(); alert(`Student ${name} added! 🎉`);
+}
 function populateStudentDropdown(){
-  const select=document.getElementById("selectStudentDropdown"); 
-  select.innerHTML="";
-  for(let s in students){ 
-    select.innerHTML+=`<option value="${s}">${s}</option>`; 
-  }
-  buildUnitList();
+  const select=document.getElementById("selectStudentDropdown"); select.innerHTML="";
+  for(let s in students) select.innerHTML+=`<option value="${s}">${s}</option>`;
 }
-
-// Build unit checkboxes when student or term changes
-function buildUnitList(){
+document.getElementById("assignAllBtn").onclick=function(){
   const student=document.getElementById("selectStudentDropdown").value;
-  const term=document.getElementById("selectTermDropdown").value;
-  const div=document.getElementById("unitAssignList"); div.innerHTML="";
-  if(!student){ div.innerHTML="Select a student first"; return; }
-  terms[term].forEach(u=>{
-    const checked=students[student].allowedUnits[term][u]? "checked" : "";
-    div.innerHTML+=`<label><input type="checkbox" data-unit="${u}" ${checked}> ${courseUnits[u]}</label><br>`;
-  });
+  if(!student) return alert("Select a student!");
+  for(let term in terms) terms[term].forEach(u=> students[student].allowedUnits[term][u]=true);
+  alert(`${student} now has all units assigned! ✅`); loadLeaderboard();
 }
-
-// Save assignments
-function saveAssignments(){
-  const student=document.getElementById("selectStudentDropdown").value;
-  const term=document.getElementById("selectTermDropdown").value;
-  document.querySelectorAll("#unitAssignList input[type=checkbox]").forEach(cb=>{
-    students[student].allowedUnits[term][cb.dataset.unit]=cb.checked;
-  });
-  alert("Assignments saved! 💾"); buildUnitList(); loadLeaderboard();
-}
-
-// Leaderboard
 function loadLeaderboard(){
   const div=document.getElementById("board"); div.innerHTML="";
-  for(let s in students){ div.innerHTML+=`${s} : ${students[s].scores.total} pts<br>`; }
+  for(let s in students) div.innerHTML+=`${s} : ${students[s].scores.total} pts<br>`;
 }
 
-/* ================= EVENT LISTENERS ================= */
+/* ================= LOGIN ================= */
 document.getElementById("teacherLoginBtn").onclick=function(){
-  if(document.getElementById("teacherPass").value==="caves"){ 
-    show("dashboard"); 
-    populateStudentDropdown(); 
-    loadLeaderboard(); 
-  } else alert("Wrong password 😭");
+  if(document.getElementById("teacherPass").value==="caves"){ show("dashboard"); populateStudentDropdown(); loadLeaderboard(); } 
+  else alert("Wrong password 😭");
 };
-document.getElementById("saveAssignmentsBtn").onclick=saveAssignments;
-
-// Update unit list when dropdown changes
-document.getElementById("selectStudentDropdown").addEventListener("change", buildUnitList);
-document.getElementById("selectTermDropdown").addEventListener("change", buildUnitList);
-
-/* ================= STUDENT LOGIN ================= */
 document.getElementById("studentLoginBtn").onclick=function(){
   const name=document.getElementById("studentName").value.trim();
   if(!name) return alert("Enter username!");
@@ -239,7 +302,6 @@ function buildTermButtons(){
     div.appendChild(btn);
   }
 }
-
 function showUnitButtons(term){
   currentTerm=term;
   const div=document.getElementById("termButtons"); div.innerHTML="";
@@ -262,9 +324,8 @@ function startUnit(uKey){
   currentQuestionIndex=0; score=0;
   show("game"); showQuestion();
 }
-
 function showQuestion(){
-  if(currentQuestionIndex>=currentUnitData.length){ finishUnit(); return; }
+  if(!currentUnitData || currentQuestionIndex>=currentUnitData.length){ finishUnit(); return; }
   let q=currentUnitData[currentQuestionIndex];
   document.getElementById("unitTitle").innerText=courseUnits[currentUnitKey];
   document.getElementById("question").innerText=q.q;
@@ -276,13 +337,11 @@ function showQuestion(){
     div.appendChild(btn);
   });
 }
-
 function checkAnswer(correct){
   if(correct) score+=10;
   currentQuestionIndex++;
   showQuestion();
 }
-
 function finishUnit(){
   students[currentStudent].scores[currentTerm]+=score;
   students[currentStudent].scores.total+=score;
