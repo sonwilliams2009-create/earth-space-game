@@ -40,7 +40,7 @@ button:hover{background:white;color:black;}
 
 <h3>Assign Units to Student</h3>
 <select id="selectStudentDropdown"></select><br>
-<select id="selectTermDropdown">
+<select id="selectTermDropdown" onchange="buildUnitList()">
   <option value="term1">Term 1</option>
   <option value="term2">Term 2</option>
   <option value="term3">Term 3</option>
@@ -83,44 +83,121 @@ document.getElementById("musicBtn").onclick=function(){
 
 /* ================= UNITS ================= */
 const courseUnits={
-  unit1:"Unit 1: Big Bang & Origin of Universe",
-  unit2:"Unit 2: Stars, Galaxies, Light Years",
-  unit3:"Unit 3: Solar System & Planet Motion",
-  unit4:"Unit 4: Gravity & Orbital Mechanics",
-  unit5:"Unit 5: Earth Interior & Layers",
-  unit6:"Unit 6: Plate Tectonics & Continental Drift",
-  unit7:"Unit 7: Earthquakes & Fault Zones",
-  unit8:"Unit 8: Volcanoes, Mountains, Subduction",
-  unit9:"Unit 9: Weather Systems & Air Pressure",
-  unit10:"Unit10: Climate vs Weather & Climate Change",
-  unit11:"Unit11: Oceans, Currents, Water Cycle",
-  unit12:"Unit12: Earth Resources & Sustainability",
-  unit13:"Unit13: Human Impact on Earth Systems",
-  unit14:"Unit14: Moon Phases, Eclipses, Tides",
-  unit15:"Unit15: Space Exploration & Satellites",
-  unit16:"Unit16: Meteorology & Severe Storms",
-  unit17:"Unit17: Magnetic Field & Auroras",
-  unit18:"Unit18: Rocks, Minerals & Rock Cycle",
-  unit19:"Unit19: Geologic Time & Fossils",
-  unit20:"Unit20: Final Review & Exam Prep"
+unit1:"Unit 1: Big Bang & Universe",
+unit2:"Unit 2: Stars & Galaxies",
+unit3:"Unit 3: Solar System & Planet Motion",
+unit4:"Unit 4: Gravity & Orbital Mechanics",
+unit5:"Unit 5: Earth Interior & Layers",
+unit6:"Unit 6: Plate Tectonics",
+unit7:"Unit 7: Earthquakes",
+unit8:"Unit 8: Volcanoes & Mountains",
+unit9:"Unit 9: Weather Systems",
+unit10:"Unit 10: Climate Change",
+unit11:"Unit 11: Oceans & Currents",
+unit12:"Unit 12: Earth Resources",
+unit13:"Unit 13: Human Impact",
+unit14:"Unit 14: Moon & Tides",
+unit15:"Unit 15: Space Exploration",
+unit16:"Unit 16: Meteorology",
+unit17:"Unit 17: Magnetic Field & Auroras",
+unit18:"Unit 18: Rocks & Minerals",
+unit19:"Unit 19: Geologic Time & Fossils",
+unit20:"Unit 20: Final Review"
 };
 
 /* ================= TERMS ================= */
 const terms = {
-  term1:["unit1","unit2","unit3","unit4","unit5"],
-  term2:["unit6","unit7","unit8","unit9","unit10"],
-  term3:["unit11","unit12","unit13","unit14","unit15"],
-  term4:["unit16","unit17","unit18","unit19","unit20"]
+term1:["unit1","unit2","unit3","unit4","unit5"],
+term2:["unit6","unit7","unit8","unit9","unit10"],
+term3:["unit11","unit12","unit13","unit14","unit15"],
+term4:["unit16","unit17","unit18","unit19","unit20"]
 };
 
-/* ================= SAMPLE QUESTIONS ================= */
+/* ================= QUESTIONS ================= */
 const questionBank={
-  unit1:[{q:"Big Bang explains…",a:[{text:"Origin universe",correct:true},{text:"Oceans",correct:false}]},
-         {q:"Universe age…",a:[{text:"13.8B yrs",correct:true},{text:"100M yrs",correct:false}]}],
-  unit2:[{q:"Light year measures…",a:[{text:"Distance",correct:true},{text:"Time",correct:false}]}],
-  unit5:[{q:"Magnetic field source…",a:[{text:"Outer core",correct:true},{text:"Crust",correct:false}]}],
-  unit6:[{q:"Continental drift caused by…",a:[{text:"Plate movement",correct:true},{text:"Volcanoes",correct:false}]}]
-};
+unit1:[
+{q:"The Big Bang explains…",a:[{text:"Origin of universe",correct:true},{text:"Oceans",correct:false}]},
+{q:"Universe age?",a:[{text:"13.8 billion years",correct:true},{text:"1 million years",correct:false}]},
+{q:"Galaxies are moving?",a:[{text:"Away from each other",correct:true},{text:"Toward each other",correct:false}]}
+],
+unit2:[
+{q:"A light year measures…",a:[{text:"Distance",correct:true},{text:"Time",correct:false}]},
+{q:"The closest star to Earth?",a:[{text:"Sun",correct:true},{text:"Proxima Centauri",correct:false}]},
+{q:"Milky Way is a…",a:[{text:"Galaxy",correct:true},{text:"Star",correct:false}]}
+],
+unit3:[
+{q:"Planets orbit the sun because…",a:[{text:"Gravity",correct:true},{text:"Magnetism",correct:false}]},
+{q:"Mars is known as…",a:[{text:"Red Planet",correct:true},{text:"Blue Planet",correct:false}]},
+{q:"Jupiter is…",a:[{text:"Gas giant",correct:true},{text:"Rocky planet",correct:false}]}
+],
+unit4:[
+{q:"Gravity affects…",a:[{text:"All objects with mass",correct:true},{text:"Only planets",correct:false}]},
+{q:"Orbital motion depends on…",a:[{text:"Gravity & velocity",correct:true},{text:"Temperature",correct:false}]}
+],
+unit5:[
+{q:"Earth’s magnetic field comes from…",a:[{text:"Outer core",correct:true},{text:"Crust",correct:false}]},
+{q:"Densest Earth layer is…",a:[{text:"Inner core",correct:true},{text:"Mantle",correct:false}]}
+],
+unit6:[
+{q:"Plate tectonics explains…",a:[{text:"Continental movement",correct:true},{text:"Earthquakes only",correct:false}]},
+{q:"Plates move at…",a:[{text:"Centimeters per year",correct:true},{text:"Meters per year",correct:false}]}
+],
+unit7:[
+{q:"Earthquakes occur at…",a:[{text:"Fault lines",correct:true},{text:"Volcanoes",correct:false}]},
+{q:"Richter scale measures…",a:[{text:"Magnitude",correct:true},{text:"Temperature",correct:false}]}
+],
+unit8:[
+{q:"Volcanoes form at…",a:[{text:"Plate boundaries",correct:true},{text:"Mountains only",correct:false}]},
+{q:"Subduction occurs when…",a:[{text:"One plate goes under another",correct:true},{text:"Plates collide & stay",correct:false}]}
+],
+unit9:[
+{q:"Weather is…",a:[{text:"Short-term atmosphere conditions",correct:true},{text:"Climate",correct:false}]},
+{q:"High pressure usually means…",a:[{text:"Clear skies",correct:true},{text:"Stormy weather",correct:false}]}
+],
+unit10:[
+{q:"Climate is…",a:[{text:"Long-term patterns",correct:true},{text:"Daily weather",correct:false}]},
+{q:"Greenhouse gases contribute to…",a:[{text:"Global warming",correct:true},{text:"Cooling",correct:false}]}
+],
+unit11:[
+{q:"Oceans influence climate by…",a:[{text:"Transporting heat",correct:true},{text:"Blocking wind",correct:false}]},
+{q:"Currents are caused by…",a:[{text:"Wind & temperature differences",correct:true},{text:"Earthquakes",correct:false}]}
+],
+unit12:[
+{q:"Sustainable resources are…",a:[{text:"Not depleted",correct:true},{text:"Used quickly",correct:false}]},
+{q:"Renewable resources include…",a:[{text:"Solar energy",correct:true},{text:"Coal",correct:false}]}
+],
+unit13:[
+{q:"Human activity affects…",a:[{text:"Climate & ecosystems",correct:true},{text:"Only rivers",correct:false}]},
+{q:"Pollution increases…",a:[{text:"Greenhouse gases",correct:true},{text:"Oxygen",correct:false}]}
+],
+unit14:[
+{q:"Tides are caused by…",a:[{text:"Moon gravity",correct:true},{text:"Sunlight",correct:false}]},
+{q:"Lunar eclipse occurs when…",a:[{text:"Earth blocks sunlight to Moon",correct:true},{text:"Moon blocks Earth",correct:false}]}
+],
+unit15:[
+{q:"Satellites orbit due to…",a:[{text:"Gravity",correct:true},{text:"Wind",correct:false}]},
+{q:"Space exploration helps…",a:[{text:"Study planets",correct:true},{text:"Predict earthquakes",correct:false}]}
+],
+unit16:[
+{q:"Meteorology studies…",a:[{text:"Weather & atmosphere",correct:true},{text:"Rocks",correct:false}]},
+{q:"Severe storms include…",a:[{text:"Tornadoes",correct:true},{text:"Droughts",correct:false}]}
+],
+unit17:[
+{q:"Auroras caused by…",a:[{text:"Solar wind & magnetic field",correct:true},{text:"Volcanoes",correct:false}]},
+{q:"Magnetic field protects…",a:[{text:"Life from solar radiation",correct:true},{text:"Wind",correct:false}]}
+],
+unit18:[
+{q:"Rocks classified by…",a:[{text:"Formation",correct:true},{text:"Color only",correct:false}]},
+{q:"Rock cycle includes…",a:[{text:"Igneous, sedimentary, metamorphic",correct:true},{text:"Sand, clay",correct:false}]}
+],
+unit19:[
+{q:"Fossils help determine…",a:[{text:"Earth history",correct:true},{text:"Weather patterns",correct:false}]},
+{q:"Geologic time scale measures…",a:[{text:"Earth history in years",correct:true},{text:"Daily temperature",correct:false}]}
+],
+unit20:[
+{q:"Final review includes…",a:[{text:"All previous topics",correct:true},{text:"Only Unit1",correct:false}]},
+{q:"Exams test…",a:[{text:"Understanding",correct:true},{text:"Memory only",correct:false}]}
+];
 
 /* ================= LOCALSTORAGE ================= */
 function getStudents(){ return JSON.parse(localStorage.getItem("students")||"{}"); }
@@ -165,7 +242,6 @@ function populateStudentDropdown(){
   for(let s in students){ select.innerHTML+=`<option value="${s}">${s}</option>`; }
 }
 
-/* Save units for selected student & term */
 function saveAssignments(){
   const student=document.getElementById("selectStudentDropdown").value;
   const selectedTerm=document.getElementById("selectTermDropdown").value;
@@ -176,7 +252,6 @@ function saveAssignments(){
   saveStudents(students); alert("Assignments saved!");
 }
 
-/* Reset progress */
 function resetStudentProgress(){
   const student=document.getElementById("selectStudentDropdown").value;
   if(!student) return alert("Select student");
@@ -197,7 +272,6 @@ function studentLogin(){
   currentStudent=name; show("studentMenu"); loadStudentTerms();
 }
 
-/* Load terms for student */
 function loadStudentTerms(){
   const div=document.getElementById("termButtons"); div.innerHTML="";
   const students=getStudents(); const studentData=students[currentStudent];
